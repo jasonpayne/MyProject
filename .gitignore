@@ -1,0 +1,10 @@
+**/.idea/
+**/.settings/
+**/*.iml
+**/*.DS_Store
+**/target/
+**/logs/
+**/application-local.yml
+deploy/**/*.jar
+.classpath
+.project
