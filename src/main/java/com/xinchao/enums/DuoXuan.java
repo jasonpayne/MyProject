@@ -18,10 +18,21 @@ public enum DuoXuan {
     BC(9, "B,C"),
     BD(10, "B,D"),
     CD(11, "C,D"),
-    A(12, "A"),
-    B(13, "B"),
-    C(14, "C"),
-    D(15, "D");
+    ABCDE(12, "A,B,C,D,E"),
+    ABCE(13, "A,B,C,E"),
+    ABDE(14, "A,B,D,E"),
+    ACDE(15, "A,C,D,E"),
+    BCDE(16, "B,C,D,E"),
+    ABE(17, "B,C,D,E"),
+    ACE(18, "B,C,D,E"),
+    ADE(19, "B,C,D,E"),
+    BCE(20, "B,C,D,E"),
+    BDE(21, "B,C,D,E"),
+    CDE(22, "C,D,E"),
+    AE(23, "A,E"),
+    BE(24, "B,E"),
+    CE(25, "C,E"),
+    DE(26, "D,E");
 
     private final int code;
 
