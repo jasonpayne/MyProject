@@ -38,7 +38,7 @@ public class DataBaseConfig {
 
         //注册默认枚举转换器
         org.apache.ibatis.session.Configuration configuration = new org.apache.ibatis.session.Configuration();
-        configuration.getTypeHandlerRegistry().setDefaultEnumTypeHandler(com.xinchao.BaseEnumTypeHandler.class);
+        configuration.getTypeHandlerRegistry().setDefaultEnumTypeHandler(com.xinchao.config.BaseEnumTypeHandler.class);
         sqlSessionFactoryBean.setConfiguration(configuration);
 
         return sqlSessionFactoryBean.getObject();

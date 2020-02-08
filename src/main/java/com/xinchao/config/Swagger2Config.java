@@ -1,4 +1,4 @@
-package com.xinchao;
+package com.xinchao.config;
 
 import io.swagger.annotations.ApiOperation;
 import org.springframework.context.annotation.Bean;

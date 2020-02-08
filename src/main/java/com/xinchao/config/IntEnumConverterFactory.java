@@ -1,4 +1,4 @@
-package com.xinchao;
+package com.xinchao.config;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterFactory;

@@ -1,4 +1,4 @@
-package com.xinchao;
+package com.xinchao.config;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;

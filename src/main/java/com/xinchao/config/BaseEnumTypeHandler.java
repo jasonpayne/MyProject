@@ -1,4 +1,4 @@
-package com.xinchao;
+package com.xinchao.config;
 
 import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
