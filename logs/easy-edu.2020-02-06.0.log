@@ -1,0 +1,14 @@
+2020-02-06 22:17:11.804 [main] INFO  com.xinchao.EasyEduApp - No active profile set, falling back to default profiles: default
+2020-02-06 22:17:15.295 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-19014"]
+2020-02-06 22:17:15.320 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2020-02-06 22:17:15.321 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/8.5.29
+2020-02-06 22:17:15.563 [localhost-startStop-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2020-02-06 22:17:19.229 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-06 22:17:19.238 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-06 22:17:21.071 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Context refreshed
+2020-02-06 22:17:21.104 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+2020-02-06 22:17:21.138 [main] INFO  springfox.documentation.spring.web.scanners.ApiListingReferenceScanner - Scanning for api listing references
+2020-02-06 22:17:21.225 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-19014"]
+2020-02-06 22:17:21.248 [main] INFO  org.apache.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
+2020-02-06 22:17:21.284 [main] INFO  com.xinchao.EasyEduApp - Started EasyEduApp in 12.803 seconds (JVM running for 15.323)
+2020-02-06 22:17:48.105 [http-nio-19014-exec-2] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring FrameworkServlet 'dispatcherServlet'

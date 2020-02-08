@@ -1,0 +1,125 @@
+2020-02-08 00:40:16.515 [main] INFO  com.xinchao.EasyEduApp - No active profile set, falling back to default profiles: default
+2020-02-08 00:40:18.515 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-19014"]
+2020-02-08 00:40:18.529 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2020-02-08 00:40:18.530 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/8.5.29
+2020-02-08 00:40:18.688 [localhost-startStop-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2020-02-08 00:40:21.103 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 00:40:21.112 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 00:40:22.579 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Context refreshed
+2020-02-08 00:40:22.600 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+2020-02-08 00:40:22.627 [main] INFO  springfox.documentation.spring.web.scanners.ApiListingReferenceScanner - Scanning for api listing references
+2020-02-08 00:40:22.666 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-19014"]
+2020-02-08 00:40:22.683 [main] INFO  org.apache.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
+2020-02-08 00:40:22.711 [main] INFO  com.xinchao.EasyEduApp - Started EasyEduApp in 8.948 seconds (JVM running for 10.986)
+2020-02-08 00:40:56.735 [http-nio-19014-exec-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring FrameworkServlet 'dispatcherServlet'
+2020-02-08 00:53:12.480 [main] INFO  com.xinchao.EasyEduApp - No active profile set, falling back to default profiles: default
+2020-02-08 00:53:14.298 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-19014"]
+2020-02-08 00:53:14.311 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2020-02-08 00:53:14.311 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/8.5.29
+2020-02-08 00:53:14.446 [localhost-startStop-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2020-02-08 00:53:16.691 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 00:53:16.697 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 00:53:18.039 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Context refreshed
+2020-02-08 00:53:18.059 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+2020-02-08 00:53:18.078 [main] INFO  springfox.documentation.spring.web.scanners.ApiListingReferenceScanner - Scanning for api listing references
+2020-02-08 00:53:18.117 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-19014"]
+2020-02-08 00:53:18.132 [main] INFO  org.apache.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
+2020-02-08 00:53:18.156 [main] INFO  com.xinchao.EasyEduApp - Started EasyEduApp in 8.171 seconds (JVM running for 9.796)
+2020-02-08 00:53:22.605 [http-nio-19014-exec-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring FrameworkServlet 'dispatcherServlet'
+2020-02-08 00:54:28.522 [main] INFO  com.xinchao.EasyEduApp - No active profile set, falling back to default profiles: default
+2020-02-08 00:54:30.324 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-19014"]
+2020-02-08 00:54:30.337 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2020-02-08 00:54:30.338 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/8.5.29
+2020-02-08 00:54:30.473 [localhost-startStop-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2020-02-08 00:54:32.666 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 00:54:32.671 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 00:54:33.945 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Context refreshed
+2020-02-08 00:54:33.964 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+2020-02-08 00:54:33.984 [main] INFO  springfox.documentation.spring.web.scanners.ApiListingReferenceScanner - Scanning for api listing references
+2020-02-08 00:54:34.022 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-19014"]
+2020-02-08 00:54:34.038 [main] INFO  org.apache.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
+2020-02-08 00:54:34.061 [main] INFO  com.xinchao.EasyEduApp - Started EasyEduApp in 8.15 seconds (JVM running for 10.002)
+2020-02-08 00:54:41.435 [http-nio-19014-exec-2] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring FrameworkServlet 'dispatcherServlet'
+2020-02-08 00:57:39.478 [main] INFO  com.xinchao.EasyEduApp - No active profile set, falling back to default profiles: default
+2020-02-08 00:57:41.687 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-19014"]
+2020-02-08 00:57:41.700 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2020-02-08 00:57:41.700 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/8.5.29
+2020-02-08 00:57:41.842 [localhost-startStop-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2020-02-08 00:57:44.191 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 00:57:44.197 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 00:57:45.571 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Context refreshed
+2020-02-08 00:57:45.591 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+2020-02-08 00:57:45.613 [main] INFO  springfox.documentation.spring.web.scanners.ApiListingReferenceScanner - Scanning for api listing references
+2020-02-08 00:57:45.652 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-19014"]
+2020-02-08 00:57:45.667 [main] INFO  org.apache.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
+2020-02-08 00:57:45.692 [main] INFO  com.xinchao.EasyEduApp - Started EasyEduApp in 9.321 seconds (JVM running for 10.978)
+2020-02-08 00:57:49.391 [http-nio-19014-exec-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring FrameworkServlet 'dispatcherServlet'
+2020-02-08 00:59:15.803 [main] INFO  com.xinchao.EasyEduApp - No active profile set, falling back to default profiles: default
+2020-02-08 00:59:17.646 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-19014"]
+2020-02-08 00:59:17.661 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2020-02-08 00:59:17.662 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/8.5.29
+2020-02-08 00:59:17.818 [localhost-startStop-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2020-02-08 00:59:20.145 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 00:59:20.150 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 00:59:21.529 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Context refreshed
+2020-02-08 00:59:21.551 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+2020-02-08 00:59:21.573 [main] INFO  springfox.documentation.spring.web.scanners.ApiListingReferenceScanner - Scanning for api listing references
+2020-02-08 00:59:21.612 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-19014"]
+2020-02-08 00:59:21.629 [main] INFO  org.apache.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
+2020-02-08 00:59:21.655 [main] INFO  com.xinchao.EasyEduApp - Started EasyEduApp in 8.526 seconds (JVM running for 10.298)
+2020-02-08 00:59:25.315 [http-nio-19014-exec-2] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring FrameworkServlet 'dispatcherServlet'
+2020-02-08 01:01:22.228 [main] INFO  com.xinchao.EasyEduApp - No active profile set, falling back to default profiles: default
+2020-02-08 01:01:24.112 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-19014"]
+2020-02-08 01:01:24.124 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2020-02-08 01:01:24.125 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/8.5.29
+2020-02-08 01:01:24.259 [localhost-startStop-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2020-02-08 01:01:26.513 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 01:01:26.518 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 01:01:27.961 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Context refreshed
+2020-02-08 01:01:27.980 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+2020-02-08 01:01:28.000 [main] INFO  springfox.documentation.spring.web.scanners.ApiListingReferenceScanner - Scanning for api listing references
+2020-02-08 01:01:28.044 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-19014"]
+2020-02-08 01:01:28.095 [main] INFO  org.apache.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
+2020-02-08 01:01:28.159 [main] INFO  com.xinchao.EasyEduApp - Started EasyEduApp in 8.557 seconds (JVM running for 10.391)
+2020-02-08 01:11:07.535 [main] INFO  com.xinchao.EasyEduApp - No active profile set, falling back to default profiles: default
+2020-02-08 01:11:09.419 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-19014"]
+2020-02-08 01:11:09.432 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2020-02-08 01:11:09.433 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/8.5.29
+2020-02-08 01:11:09.568 [localhost-startStop-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2020-02-08 01:11:11.975 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 01:11:11.980 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 01:11:13.333 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Context refreshed
+2020-02-08 01:11:13.353 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+2020-02-08 01:11:13.373 [main] INFO  springfox.documentation.spring.web.scanners.ApiListingReferenceScanner - Scanning for api listing references
+2020-02-08 01:11:13.411 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-19014"]
+2020-02-08 01:11:13.427 [main] INFO  org.apache.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
+2020-02-08 01:11:13.452 [main] INFO  com.xinchao.EasyEduApp - Started EasyEduApp in 8.401 seconds (JVM running for 10.063)
+2020-02-08 01:11:17.809 [http-nio-19014-exec-2] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring FrameworkServlet 'dispatcherServlet'
+2020-02-08 01:13:36.550 [main] INFO  com.xinchao.EasyEduApp - No active profile set, falling back to default profiles: default
+2020-02-08 01:13:38.875 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-19014"]
+2020-02-08 01:13:38.910 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2020-02-08 01:13:38.911 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/8.5.29
+2020-02-08 01:13:39.046 [localhost-startStop-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2020-02-08 01:13:41.772 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 01:13:41.778 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 01:13:43.151 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Context refreshed
+2020-02-08 01:13:43.172 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+2020-02-08 01:13:43.194 [main] INFO  springfox.documentation.spring.web.scanners.ApiListingReferenceScanner - Scanning for api listing references
+2020-02-08 01:13:43.235 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-19014"]
+2020-02-08 01:13:43.251 [main] INFO  org.apache.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
+2020-02-08 01:13:43.276 [main] INFO  com.xinchao.EasyEduApp - Started EasyEduApp in 10.241 seconds (JVM running for 13.33)
+2020-02-08 01:14:17.680 [http-nio-19014-exec-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring FrameworkServlet 'dispatcherServlet'
+2020-02-08 12:34:25.252 [main] INFO  com.xinchao.EasyEduApp - No active profile set, falling back to default profiles: default
+2020-02-08 12:34:30.417 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-19014"]
+2020-02-08 12:34:30.448 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2020-02-08 12:34:30.448 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet Engine: Apache Tomcat/8.5.29
+2020-02-08 12:34:30.836 [localhost-startStop-1] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2020-02-08 12:34:37.337 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 12:34:37.349 [main] INFO  com.netflix.config.sources.URLConfigurationSource - To enable URLs as dynamic configuration sources, define System property archaius.configurationSource.additionalUrls or make config.properties available on classpath.
+2020-02-08 12:34:40.848 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Context refreshed
+2020-02-08 12:34:40.899 [main] INFO  springfox.documentation.spring.web.plugins.DocumentationPluginsBootstrapper - Found 1 custom documentation plugin(s)
+2020-02-08 12:34:40.950 [main] INFO  springfox.documentation.spring.web.scanners.ApiListingReferenceScanner - Scanning for api listing references
+2020-02-08 12:34:41.047 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-19014"]
+2020-02-08 12:34:41.083 [main] INFO  org.apache.tomcat.util.net.NioSelectorPool - Using a shared selector for servlet write/read
+2020-02-08 12:34:41.151 [main] INFO  com.xinchao.EasyEduApp - Started EasyEduApp in 23.199 seconds (JVM running for 28.855)
+2020-02-08 12:35:06.060 [http-nio-19014-exec-2] INFO  org.apache.catalina.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring FrameworkServlet 'dispatcherServlet'
