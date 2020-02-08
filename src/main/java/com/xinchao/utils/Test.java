@@ -1,10 +1,8 @@
 package com.xinchao.utils;
 
-import com.xinchao.dao.entity.QuestionBank;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
 

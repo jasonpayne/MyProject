@@ -1,8 +1,8 @@
 package com.xinchao.controller;
 
-import com.xinchao.dao.entity.QuestionBank;
+import com.xinchao.dao.entity.Answer;
 import com.xinchao.dao.entity.User;
-import com.xinchao.dao.mapper.QuestionBankMapper;
+import com.xinchao.dao.mapper.AnswerMapper;
 import com.xinchao.dao.mapper.UserMapper;
 import com.xinchao.enums.DanXuan;
 import com.xinchao.enums.DuoXuan;
@@ -31,7 +31,7 @@ import static java.util.regex.Pattern.compile;
 public class QuestionController {
 
     @Autowired
-    private QuestionBankMapper questionBankMapper;
+    private AnswerMapper AnswerMapper;
 
     @Autowired
     UserMapper userMapper;
@@ -83,7 +83,7 @@ public class QuestionController {
     public String start0(Student student) {
         try {
             //发送 POST 请求登陆
-            String sr = HttpClient.sendPost("http://202.196.64.120/vls2s/zzjlogin.dll/login", "uid="+student.getUid()+"&pw="+student.getPw());
+            String sr = HttpClient.sendPost("http://171.8.225.125/vls2s/zzjlogin.dll/login", "uid="+student.getUid()+"&pw="+student.getPw());
             String req = sr.substring(sr.indexOf("window.location")+"window.location".length()+ 2,sr.indexOf("&sid=")+"&sid=".length() );
             String reqFinal = req.replace("getmain","getfirstpage")
                     .replace("&sid=","").replace("vls2s","vls5s").
@@ -94,11 +94,8 @@ public class QuestionController {
             System.out.println(reqFinal);
             // 打开学习主页
             String allclass = HttpClient.sendGet(reqFinal,  null);
-            System.out.println("===========================本学期所有需要学习课程========================================");
-//        Pattern pattern = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
-//        Pattern pattern = Pattern.compile("href=[\"']?((https?://)?/?[^\"']+)[\"']?.*?>(.+)");
-            //<a href="http://123.15.57.108/vls5s/vls3isapi2.dll/lookonecourse?ptopid=68E8965430F243C7B86475A86DFD865A&keid=0001">
-//        Pattern pattern = Pattern.compile("href\\s?=\\s?(['\"]?)([^'\">\\s]+)\\1[>\\s]");
+
+            System.out.println("===========================本学期所有需要学习课程==========================");
             List<String> needList = new ArrayList<String>();
             Pattern pattern = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
             Matcher matcher = pattern.matcher(allclass);
@@ -106,58 +103,39 @@ public class QuestionController {
                 String r = matcher.group(1).replace("\"", "");
                 if(r.contains("lookonecourse") && !r.contains("0027") && !r.contains("9011")){
                     System.out.println(r);
-                    needList.add(r);
+                    needList.add(r.substring(r.indexOf("keid=")+"keid=".length()));
                 }
             }
+            System.out.println("===========================获取sid参数========================================");
+            String need = "http://171.8.225.170/vls2s/vls3isapi.dll/mygetonetest?ptopid="+ptopId+"&keid="+needList.get(0);
+            String need0 = HttpClient.sendGet(need,  null);
+            String sid = need0.substring(need0.indexOf("&sid=")+"&sid=".length(),need0.indexOf("&wheres="));
 
-            System.out.println("===========================进入某个专业课(测试)========================================");
-
-
-            System.out.println("===================================================================");
-            // 某个专业课的练习
-            String need = HttpClient.sendGet(needList.get(0),  null);
-            String keid = needList.get(5).substring(needList.get(5).indexOf("keid=")+"keid=".length());
-            String needOne = null;
-            Pattern pattern2 = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
-            Matcher matcher2 = pattern2.matcher(need);
-
-            while (matcher2.find()) {
-                String r = matcher2.group(1).replace("\"", "");
-                if(r.contains("mygetonetest")){
+            System.out.println("===========================进入测试列表========================================");
+            String needQuery = "http://171.8.225.170/vls2s/vls3isapi.dll/myviewdatalist";
+            String needParam = "ptopid="+ptopId+"&sid="+sid;
+            List<String>  testList = new ArrayList<>();
+            int sum = 0;
+            for(int i=1;i<=10;i++){
+                System.out.println(needQuery+"?"+needParam+"&pn="+i);
+                String testHtml = HttpClient.sendPost(needQuery,  needParam+"&pn="+i);
+                Pattern pattern4 = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
+                Matcher matcher4 = pattern4.matcher(testHtml);// "开始在线测试";
+                while (matcher4.find()) {
+                    String r = matcher4.group(1).replace("\"", "").replace("testonce0","testonce");
                     System.out.println(r);
-                    needOne = r;
+                    testList.add(r);
+                }
+                if(i == 1){
+                    sum = Integer.valueOf(testHtml.substring(testHtml.indexOf("共")+1,testHtml.indexOf("条")))/25+1;
+                }
+                if(i == sum){
                     break;
                 }
             }
-            // ruid
-            String ruid = needOne.substring(needOne.indexOf("ruid=")+"ruid=".length(), needOne.indexOf("&keid="));
-            System.out.println("===========================进入练习列表(转换URL)========================================");
-            String needlianxi = HttpClient.sendGet(needOne,  null);
-            String needOneQuery = null;
-            Pattern pattern3 = compile("url=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)");
-            Matcher matcher3 = pattern3.matcher(needlianxi);
-            while (matcher3.find()) {
-                String r = matcher3.group(1).replace("\'", "");
-                System.out.println(r);
-                needOneQuery = r;
-            }
 
-
-            System.out.println("===========================进入练习列表========================================");
-            String needlianxilist = HttpClient.sendGet(needOneQuery,  null);
-            List<String>  needOneQuerylist = new ArrayList<String>();
-//            Pattern pattern4 = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
-//            Pattern pattern4 = compile("(<tr>\\[\\$\\w+\\$\\]</tr>)?");
-            Pattern pattern4 = compile("/<table><tr><td>(.*?)<\\/td>/s");
-            Matcher matcher4 = pattern4.matcher(needlianxilist);// "开始在线测试";
-            while (matcher4.find()) {
-                String r = matcher4.group(1).replace("\"", "").replace("testonce0","testonce");
-                System.out.println(r);
-                needOneQuerylist.add(r);
-            }
-
-            System.out.println("===========================进入练习题详情========================================");
-            String xiangqing = needOneQuerylist.get(6);
+            System.out.println("===========================进入测试详情========================================");
+            String xiangqing = testList.get(7);
             String needlianxilistdetail = HttpClient.sendGet(xiangqing,  null);
             Pattern pattern5 = compile("<input" + "[^<>]*?\\s" + "name=['\"]?(.*?)['\"]?(\\s.*?)?>");
             Matcher matcher5 = pattern5.matcher(needlianxilistdetail);
@@ -168,7 +146,7 @@ public class QuestionController {
             while (matcher5.find()) {
                 String r = matcher5.group(1);
                 if(r.contains(zhang)){
-                    if(r.contains("A") || r.contains("B") || r.contains("C") || r.contains("D")){
+                    if(r.contains("A") || r.contains("B") || r.contains("C") || r.contains("D") || r.contains("E")){
                         questionSet.add(r.substring(0,r.length()-1));
                     }else {
                         questionSet.add(r);
@@ -183,17 +161,16 @@ public class QuestionController {
             Map<String,String> intiMap = new TreeMap<>();
 
             for (String str : questionSet) {
-                QuestionBank info = new QuestionBank();
+                Answer info = new Answer();
                 info.setQuestId(str);
-                List<QuestionBank> quest = questionBankMapper.selectForPage(info);
+                List<Answer> quest = AnswerMapper.selectForPage(info);
                 // 如果存在初始答案则不需要初始化
                 if(null != quest && quest.size() > 0){
                     intiMap.put(str,quest.get(0).getAnswers());
                 }else{
-                    QuestionBank isNotAnswer = new QuestionBank();
+                    Answer isNotAnswer = new Answer();
                     isNotAnswer.setQuestId(str);
                     isNotAnswer.setZhengId(zhang);
-                    isNotAnswer.setKeId(keid);
                     if(str.contains(zhang+1)){
                         isNotAnswer.setAnswers("A");
                     }
@@ -206,7 +183,7 @@ public class QuestionController {
                     isNotAnswer.setIsCorrect(-1);
                     intiMap.put(str,isNotAnswer.getAnswers());
                     // 如果不存在初始答案则要初始化
-                    questionBankMapper.insert(isNotAnswer);
+                    AnswerMapper.insert(isNotAnswer);
                 }
             }
 
@@ -225,7 +202,7 @@ public class QuestionController {
                 }
             }
 
-            String param = "submitpaper=submit&ptopid="+ptopId+"&paperid="+student.getUid()+zhang+"&ruid="+ruid;
+            String param = "submitpaper=submit&ptopid="+ptopId+"&paperid="+student.getUid()+zhang;
             for (Map.Entry<String, String> map : answerMap.entrySet()) {
                 param = param + "&" + map.getKey() + "=" + map.getValue();
             }
@@ -265,7 +242,7 @@ public class QuestionController {
                 System.out.println("===========================更新答案库========================================");
                 for (Map.Entry<String, String> map : intiMap.entrySet()) {
                     for(int i=0;i<resultList.size();i++) {
-                        QuestionBank questUpdate = new QuestionBank();
+                        Answer questUpdate = new Answer();
                         questUpdate.setQuestId(map.getKey());
                         if(resultList.get(i).equals("正确")){
                             questUpdate.setAnswers(map.getValue());
@@ -285,7 +262,7 @@ public class QuestionController {
                             }
                             questUpdate.setIsCorrect(0);
                         }
-                        questionBankMapper.update(questUpdate);
+                        AnswerMapper.update(questUpdate);
                         resultList.remove(i);
                         break;
                     }

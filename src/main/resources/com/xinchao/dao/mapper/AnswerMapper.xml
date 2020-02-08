@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xinchao.dao.mapper.QuestionBankMapper">
+<mapper namespace="com.xinchao.dao.mapper.AnswerMapper">
 
-    <resultMap id="ResultMap" type="com.xinchao.dao.entity.QuestionBank" >
+    <resultMap id="ResultMap" type="com.xinchao.dao.entity.Answer" >
         <result column="id" property="id" />
         <result column="quest_id" property="questId" />
         <result column="zheng_id" property="zhengId" />
@@ -41,19 +41,19 @@
 
     <select id="selectForPage" resultMap="ResultMap">
         SELECT <include refid="Base_Column_List" />
-        FROM question_bank
+        FROM answer
         WHERE 1 = 1
         <include refid="whereSQL" />
     </select>
 
     <select id="selectOne" resultMap="ResultMap">
         SELECT <include refid="Base_Column_List" />
-        FROM question_bank
+        FROM answer
         WHERE id = #{id}
     </select>
 
-    <insert id="insert"  parameterType="com.xinchao.dao.entity.QuestionBank">
-        INSERT INTO question_bank
+    <insert id="insert"  parameterType="com.xinchao.dao.entity.Answer">
+        INSERT INTO answer
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test ='null != questId'>
                 quest_id,
@@ -90,15 +90,15 @@
         </trim>
     </insert>
 
-    <insert id="insertBatch" parameterType="com.xinchao.dao.entity.QuestionBank">
-        insert into question_bank (quest_id, zheng_id, ke_id, answers, is_correct) values
+    <insert id="insertBatch" parameterType="com.xinchao.dao.entity.Answer">
+        insert into answer (quest_id, zheng_id, ke_id, answers, is_correct) values
         <foreach collection="list" item="item" separator=",">
             (#{item.questId}, #{item.zhengId}, #{item.keId}, #{item.answers}, #{item.isCorrect})
         </foreach>
     </insert>
 
-    <update id="update" parameterType="com.xinchao.dao.entity.QuestionBank">
-        UPDATE question_bank
+    <update id="update" parameterType="com.xinchao.dao.entity.Answer">
+        UPDATE answer
         <set>
             <if test ='null != zhengId'>zheng_id = #{zhengId},</if>
             <if test ='null != keId'>ke_id = #{keId},</if>

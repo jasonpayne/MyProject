@@ -3,7 +3,7 @@ package com.xinchao.dao.entity;
 import lombok.Data;
 
 @Data
-public class QuestionBank {
+public class Answer {
 
     private static final long serialVersionUID = 1L;
 

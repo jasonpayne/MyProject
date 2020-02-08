@@ -1,8 +1,5 @@
 package com.xinchao.utils;
 
-import com.xinchao.model.Student;
-import org.junit.Test;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;

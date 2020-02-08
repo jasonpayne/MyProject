@@ -6,9 +6,11 @@ import com.xinchao.service.QuestionService;
 import com.xinchao.utils.HttpClient;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
 
@@ -16,13 +18,15 @@ import static java.util.regex.Pattern.compile;
  * 实现通用方法
  * @author xinchao.pan
  * @date 2020/02/04
+ * http://171.8.225.133/
  */
 @Service
 public class QuestionServiceImpl implements QuestionService {
 
     private static final String denglu = "http://202.196.64.120/vls2s/zzjlogin.dll/login";
 
-    private static final String kecheng = "http://123.15.57.74/vls5s/vls3isapi2.dll/";
+//    private static final String kecheng = "http://123.15.57.74/vls5s/vls3isapi2.dll/";
+    private static final String kecheng = "http://171.8.225.133/vls5s/vls3isapi2.dll/";
 
     /**
      * [查询] 根据主键 id 查询
@@ -149,20 +153,20 @@ public class QuestionServiceImpl implements QuestionService {
      * @author xinchao.pan
      * @date 2020/02/04
      **/
-//    int insert(QuestionBank question);
+//    int insert(Answer question);
 
     /**
      * 人像批量添加
      * @param list
      * @return
      */
-//    int insertBatch(@Param("list") List<QuestionBank> list);
+//    int insertBatch(@Param("list") List<Answer> list);
 
     /**
      * [更新]
      * @author xinchao.pan
      * @date 2020/02/04
      **/
-//    int update(QuestionBank question);
+//    int update(Answer question);
 
 }
