@@ -22,6 +22,11 @@ public class TestUser {
     private String zhangId;
 
     /**
+     * 所需要答的题目
+     */
+    private String quests;
+
+    /**
      * 所属学生
      */
     private String uid;

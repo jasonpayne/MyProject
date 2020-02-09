@@ -25,6 +25,10 @@ public interface QuestionService {
 
     List<Map<String,Object>> testList(String majorUrl);
 
+    String openTest();
+
+    String submitAnswer();
+
 //    MajorTest testDetail(String majorUrl);
 
 

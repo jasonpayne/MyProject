@@ -1,5 +1,6 @@
 package com.xinchao.schedule;
 
+import com.xinchao.controller.QuestionController;
 import com.xinchao.dao.entity.User;
 import com.xinchao.dao.mapper.UserMapper;
 import com.xinchao.model.MajorTest;
@@ -8,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -35,26 +37,22 @@ public class ScanTestScheduler {
     /**
      * 定时扫描去完成测试任务
      */
-//    @Scheduled(cron = "0 5,15,25,35,45,55 * * * ?")
+//    @Scheduled(cron = "0 0/3 * * * ?")
     @Async("asyncScheduleExecutor")
     public void scanTestScheduler() {
-        LOGGER.info("定时扫描去完成测试任务");
-        User testUser = new User();
-        testUser.setIsClass(0);
-        List<User> testUserList = userMapper.selectForList(testUser);
-        for(User user : testUserList){
-            // 打开学习主页（能看到课程） 用session登陆获取本学期专业课列表
-            List<String> List = questionService.majorList(user);
-            if(null == List){
-                // 需要再次登陆
-                /*if(questionService.login(user)){
-                    List = questionService.majorList(user);
-                }*/
-            }
-            // 遍历不同的专业课（练习）
-            for(String majorUrl : List){
-                MajorTest majorTest = questionService.majorDetailToTest(majorUrl);
-            }
-        }
+        LOGGER.info("定时打开测试题");
+        System.out.println(questionService.openTest());
+    }
+
+
+    /**
+     * 定时扫描去完成测试任务
+     */
+//    @Scheduled(cron = "0 0/2 * * * ?")
+    @Async("asyncScheduleExecutor")
+    public void scanTest222Scheduler() {
+        LOGGER.info("定时提交答案");
+        QuestionController questionController = new QuestionController();
+        System.out.println(questionService.submitAnswer());
     }
 }
