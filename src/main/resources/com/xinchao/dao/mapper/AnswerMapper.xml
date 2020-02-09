@@ -39,7 +39,7 @@
         </if>
     </sql>
 
-    <select id="selectForPage" resultMap="ResultMap">
+    <select id="selectForList" resultMap="ResultMap">
         SELECT <include refid="Base_Column_List" />
         FROM answer
         WHERE 1 = 1

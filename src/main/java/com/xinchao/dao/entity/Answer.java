@@ -12,7 +12,6 @@ public class Answer {
      */
     private Integer id;
 
-
     /**
      * 所属课程
      */

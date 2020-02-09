@@ -34,7 +34,6 @@ public class ScanTestScheduler {
 
     /**
      * 定时扫描去完成测试任务
-     * 每隔10分钟执行一次
      */
 //    @Scheduled(cron = "0 5,15,25,35,45,55 * * * ?")
     @Async("asyncScheduleExecutor")
@@ -42,23 +41,20 @@ public class ScanTestScheduler {
         LOGGER.info("定时扫描去完成测试任务");
         User testUser = new User();
         testUser.setIsClass(0);
-        List<User> testUserList = userMapper.selectForPage(testUser);
+        List<User> testUserList = userMapper.selectForList(testUser);
         for(User user : testUserList){
             // 打开学习主页（能看到课程） 用session登陆获取本学期专业课列表
             List<String> List = questionService.majorList(user);
             if(null == List){
                 // 需要再次登陆
-                if(questionService.login(user)){
+                /*if(questionService.login(user)){
                     List = questionService.majorList(user);
-                }
+                }*/
             }
             // 遍历不同的专业课（练习）
             for(String majorUrl : List){
                 MajorTest majorTest = questionService.majorDetailToTest(majorUrl);
-
             }
-
         }
-
     }
 }

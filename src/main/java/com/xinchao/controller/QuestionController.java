@@ -1,8 +1,10 @@
 package com.xinchao.controller;
 
 import com.xinchao.dao.entity.Answer;
+import com.xinchao.dao.entity.TestUser;
 import com.xinchao.dao.entity.User;
 import com.xinchao.dao.mapper.AnswerMapper;
+import com.xinchao.dao.mapper.TestUserMapper;
 import com.xinchao.dao.mapper.UserMapper;
 import com.xinchao.enums.DanXuan;
 import com.xinchao.enums.DuoXuan;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.util.regex.Pattern.compile;
 
@@ -31,10 +34,13 @@ import static java.util.regex.Pattern.compile;
 public class QuestionController {
 
     @Autowired
-    private AnswerMapper AnswerMapper;
+    private AnswerMapper answerMapper;
 
     @Autowired
     UserMapper userMapper;
+
+    @Autowired
+    TestUserMapper testUserMapper;
 
     @Autowired
     QuestionService questionService;
@@ -42,22 +48,28 @@ public class QuestionController {
     @RequestMapping(value = "/register", method = RequestMethod.GET)
     public String register(@RequestBody User user) {
         try {
-            //发送 POST 请求登陆,返回
-            if(questionService.login(user)) {
+            //发送 POST 请求登陆,注册已知课程
+            String ptopId = questionService.login(user);
+            if(ptopId == null) {
                 return "对不起，你输入的账号和密码未通过系统的验证";
             }else{
-                User loginInfo = userMapper.selectOne(user);
+                User loginInfo = userMapper.login(user);
                 if(null != loginInfo){
-                    if(loginInfo.getIsClass()==0 || loginInfo.getIsClass()==0){
+                    if(loginInfo.getIsClass() == 0 || loginInfo.getIsClass()==0){
+                        user.setPtopId(ptopId);
+                        userMapper.update(user);
+//                        register0(user);
                         return "已经注册成功，正在操作，请稍等登陆查看";
                     }else {
                         return "已经注册成功，练习和答题已完成，请立即登陆查看";
                     }
                 }else{
                     // 插入系统，并且初始化数据
+                    user.setPtopId(ptopId);
                     user.setIsClass(0);
                     user.setIsTest(0);
                     userMapper.insert(user);
+                    register0(user);
                     return "刚刚注册成功，正在操作，请稍等登陆查看";
                 }
             }
@@ -66,82 +78,87 @@ public class QuestionController {
         }
     }
 
-    @RequestMapping(value = "/start", method = RequestMethod.GET)
-    public String start(@RequestBody Student student) {
+    public void register0(User user) {
         try {
-            return start0(student);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-        return null;
-    }
-    public String start0(Student student) {
-        try {
-            //发送 POST 请求登陆
-            String sr = HttpClient.sendPost("http://171.8.225.125/vls2s/zzjlogin.dll/login", "uid="+student.getUid()+"&pw="+student.getPw());
-            String req = sr.substring(sr.indexOf("window.location")+"window.location".length()+ 2,sr.indexOf("&sid=")+"&sid=".length() );
-            String reqFinal = req.replace("getmain","getfirstpage")
-                    .replace("&sid=","").replace("vls2s","vls5s").
-                            replace("vls3isapi","vls3isapi2");
-            System.out.println("==============================登陆=====================================");
-            // ptopId
-            String ptopId = reqFinal.substring(reqFinal.indexOf("ptopid=")+"ptopid=".length());
+            String reqFinal = "http://171.8.225.133/vls5s/vls3isapi2.dll/getfirstpage?ptopid="+user.getPtopId();
             System.out.println(reqFinal);
             // 打开学习主页
-            String allclass = HttpClient.sendGet(reqFinal,  null);
-
+            String allclass = HttpClient.sendGet(reqFinal, null);
             System.out.println("===========================本学期所有需要学习课程==========================");
             List<String> needList = new ArrayList<String>();
             Pattern pattern = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
             Matcher matcher = pattern.matcher(allclass);
             while (matcher.find()) {
                 String r = matcher.group(1).replace("\"", "");
-                if(r.contains("lookonecourse") && !r.contains("0027") && !r.contains("9011")){
+                if (r.contains("lookonecourse") && !r.contains("0027") && !r.contains("9011")) {
                     System.out.println(r);
-                    needList.add(r.substring(r.indexOf("keid=")+"keid=".length()));
+                    needList.add(r.substring(r.indexOf("keid=") + "keid=".length()));
                 }
             }
             System.out.println("===========================获取sid参数========================================");
-            String need = "http://171.8.225.170/vls2s/vls3isapi.dll/mygetonetest?ptopid="+ptopId+"&keid="+needList.get(0);
-            String need0 = HttpClient.sendGet(need,  null);
-            String sid = need0.substring(need0.indexOf("&sid=")+"&sid=".length(),need0.indexOf("&wheres="));
-
-            System.out.println("===========================进入测试列表========================================");
+            String need = "http://171.8.225.170/vls2s/vls3isapi.dll/mygetonetest?ptopid=" + user.getPtopId() + "&keid=" + needList.get(0);
+            String need0 = HttpClient.sendGet(need, null);
+            String sid = need0.substring(need0.indexOf("&sid=") + "&sid=".length(), need0.indexOf("&wheres="));
+            System.out.println(sid);
+            System.out.println("===========================添加本学期测试列表========================================");
             String needQuery = "http://171.8.225.170/vls2s/vls3isapi.dll/myviewdatalist";
-            String needParam = "ptopid="+ptopId+"&sid="+sid;
-            List<String>  testList = new ArrayList<>();
+            String needParam = "ptopid=" + user.getPtopId() + "&sid=" + sid;
+            System.out.println(needQuery+"?"+needParam);
+            List<String> testList = new ArrayList<>();
             int sum = 0;
-            for(int i=1;i<=10;i++){
-                System.out.println(needQuery+"?"+needParam+"&pn="+i);
-                String testHtml = HttpClient.sendPost(needQuery,  needParam+"&pn="+i);
+            for (int i = 1; i <= 10; i++) {
+                System.out.println(needQuery + "?" + needParam + "&pn=" + i);
+                String testHtml = HttpClient.sendPost(needQuery, needParam + "&pn=" + i);
                 Pattern pattern4 = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
-                Matcher matcher4 = pattern4.matcher(testHtml);// "开始在线测试";
+                Matcher matcher4 = pattern4.matcher(testHtml);
                 while (matcher4.find()) {
-                    String r = matcher4.group(1).replace("\"", "").replace("testonce0","testonce");
-                    System.out.println(r);
+                    String r = matcher4.group(1).replace("\"", "").replace("testonce0", "testonce");
+                    TestUser testUser = new TestUser();
+                    testUser.setZhangId(r.substring(r.indexOf("zhang=") + "zhang=".length()));
+                    testUser.setUid(user.getUid());
+//                    testUser.setScore();//是多少就是多少！
+                    // TODO
+                    testUser.setIsComplete(0);
+                    testUser.setIsSubmit(0);
+                    testUserMapper.insert(testUser);
                     testList.add(r);
                 }
-                if(i == 1){
-                    sum = Integer.valueOf(testHtml.substring(testHtml.indexOf("共")+1,testHtml.indexOf("条")))/25+1;
+                if (i == 1) {
+                    sum = Integer.valueOf(testHtml.substring(testHtml.indexOf("共") + 1, testHtml.indexOf("条"))) / 25 + 1;
                 }
-                if(i == sum){
+                if (i == sum) {
                     break;
                 }
             }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
 
-            for(int j=0 ; 1<30 ; j++){
-                System.out.println("===========================进入测试详情========================================");
-                String xiangqing = testList.get(32);
-                String needlianxilistdetail = HttpClient.sendGet(xiangqing,  null);
-                Pattern pattern5 = compile("<input" + "[^<>]*?\\s" + "name=['\"]?(.*?)['\"]?(\\s.*?)?>");
-                Matcher matcher5 = pattern5.matcher(needlianxilistdetail);
+    @RequestMapping(value = "/openTest", method = RequestMethod.GET)
+    public void openTest() {
+        try {
+            TestUser testUser = new TestUser();
+            testUser.setIsComplete(0);
+            List<TestUser> testList = testUserMapper.selectForList(testUser);
+            for (TestUser model : testList) {
+                User user = new User();
+                user.setUid(model.getUid());
+                User session = userMapper.selectOne(user);
+                String testDetailUrl = "http://171.8.225.138/vls2s/vls3isapi.dll/testonce?ptopid=" + session.getPtopId() + "&zhang=" + model.getZhangId();
+                System.out.println(testDetailUrl);
+                String testDetailHtml = HttpClient.sendGet(testDetailUrl, null);
+                if(testDetailHtml.contains("你的登录信息已经失效")){
+//                    userMapper.login(session).getPtopId();
+                    return;
+                }
+                Matcher testDetailMatcher = compile("<input" + "[^<>]*?\\s" + "name=['\"]?(.*?)['\"]?(\\s.*?)?>").matcher(testDetailHtml);
                 // 本章需要完成的全部题目
                 TreeSet<String> questionSet = new TreeSet();
                 // 章节zhang
-                String zhang = xiangqing.substring(xiangqing.indexOf("zhang=")+"zhang=".length());
-                while (matcher5.find()) {
-                    String r = matcher5.group(1);
-                    if(r.contains(zhang)){
+                while (testDetailMatcher.find()) {
+                    String r = testDetailMatcher.group(1);
+                    if(r.contains(model.getZhangId())){
                         if(r.contains("A") || r.contains("B") || r.contains("C") || r.contains("D") || r.contains("E")){
                             questionSet.add(r.substring(0,r.length()-1));
                         }else {
@@ -149,80 +166,100 @@ public class QuestionController {
                         }
                     }
                 }
-                System.out.println("==============================提交答案===============================");
-                // 组装答案，并且初始化数据，如果已经初始化，就直接取出来（这也是填写的答案）
-                Map<String,String> intiMap = new TreeMap<>();
-
+                // 初始化答案
                 for (String str : questionSet) {
                     Answer info = new Answer();
                     info.setQuestId(str);
-                    List<Answer> quest = AnswerMapper.selectForPage(info);
-                    // 如果存在初始答案则不需要初始化
-                    if(null != quest && quest.size() > 0){
-                        intiMap.put(str,quest.get(0).getAnswers());
-                    }else{
+                    List<Answer> quest = answerMapper.selectForList(info);
+                    if(null == quest || quest.size() == 0){
                         Answer isNotAnswer = new Answer();
                         isNotAnswer.setQuestId(str);
-                        isNotAnswer.setZhengId(zhang);
-                        if(str.contains(zhang+1)){
+                        isNotAnswer.setZhengId(model.getZhangId());
+                        if(str.contains(model.getZhangId()+1)){
                             isNotAnswer.setAnswers("A");
                         }
-                        else if(str.contains(zhang+2)){
+                        else if(str.contains(model.getZhangId()+2)){
                             isNotAnswer.setAnswers("A,B,C,D");
                         }
-                        else if(str.contains(zhang+3)){
+                        else if(str.contains(model.getZhangId()+3)){
                             isNotAnswer.setAnswers("Y");
                         }
                         isNotAnswer.setIsCorrect(-1);
-                        intiMap.put(str,isNotAnswer.getAnswers());
                         // 如果不存在初始答案则要初始化
-                        AnswerMapper.insert(isNotAnswer);
+                        answerMapper.insert(isNotAnswer);
                     }
                 }
+            }
+            // 答题需要延迟2分钟提交
+            int k = 1;
+            while (k<5) {
+                Thread.sleep(30100);
+                System.out.println("等待中========================"+k);
+                k++;
+            }
+            for (TestUser model : testList) {
+                model.setIsSubmit(1);
+                testUserMapper.update(model);
+            }
+            submitAnswer();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
 
+    @RequestMapping(value = "/submitAnswer", method = RequestMethod.GET)
+    public void submitAnswer() {
+        try {
+            TestUser testUser = new TestUser();
+            testUser.setIsComplete(0);
+            testUser.setIsSubmit(1);
+            List<TestUser> testList = testUserMapper.selectForList(testUser);
+            for (TestUser model : testList) {
+                Answer queryOld = new Answer();
+                queryOld.setZhengId(model.getZhangId());
+                List<Answer> answerOlds = answerMapper.selectForList(queryOld);
+                List<Answer> answerOldList = answerOlds.stream().sorted(Comparator.comparing(Answer::getQuestId))
+                        .collect(Collectors.toList());
                 // 等待提交的答案
                 Map<String,String> answerMap = new TreeMap<>();
-                for (Map.Entry<String, String> map : intiMap.entrySet()) {
-                    if(map.getKey().contains(zhang+1)) {
-                        answerMap.put(map.getKey(), map.getValue());
-                    }else if(map.getKey().contains(zhang+2)){
-                        List<String> duoXuans = Arrays.asList(map.getValue().split(","));
+                for (Answer answerOld : answerOldList) {
+                    if(answerOld.getQuestId().contains(model.getZhangId()+1)) {
+                        answerMap.put(answerOld.getQuestId(), answerOld.getAnswers());
+                    }else if(answerOld.getQuestId().contains(model.getZhangId()+2)){
+                        List<String> duoXuans = Arrays.asList(answerOld.getAnswers().split(","));
                         for(String duoXuan : duoXuans){
-                            answerMap.put(map.getKey()+duoXuan ,duoXuan);
+                            answerMap.put(answerOld.getQuestId()+duoXuan ,duoXuan);
                         }
-                    }else if(map.getKey().contains(zhang+3)){
-                        answerMap.put(map.getKey(), map.getValue());
+                    }else if(answerOld.getQuestId().contains(model.getZhangId()+3)){
+                        answerMap.put(answerOld.getQuestId(), answerOld.getAnswers());
                     }
                 }
-
-                String param = "submitpaper=submit&ptopid="+ptopId+"&paperid="+student.getUid()+zhang;
+                User user = new User();
+                user.setUid(model.getUid());
+                User session = userMapper.selectOne(user);
+                String param = "submitpaper=submit&ptopid="+session.getPtopId()+"&paperid="+user.getUid()+model.getZhangId();
                 for (Map.Entry<String, String> map : answerMap.entrySet()) {
                     param = param + "&" + map.getKey() + "=" + map.getValue();
                 }
-                // 答题需要延迟2分钟提交
-                int k = 1;
-                while (k<5) {
-                    Thread.sleep(31000);
-                    k++;
-                    System.out.println("等待中========================"+k);
+                String submitURL = "http://171.8.225.138/vls2s/vls3isapi.dll/smpaper";
+                String submitHtml = HttpClient.sendPost(submitURL, param);
+                if(submitHtml.contains("你的登录信息已经失效")){
+//                    userMapper.login(session).getPtopId();
+                    return;
                 }
-                String submitURL = xiangqing.substring(0,xiangqing.indexOf("?")).replace("testonce","smpaper");
-                String submit = HttpClient.sendPost(submitURL, param);
-
-                Matcher matcherPoint = compile("<span [^>]*>([^<]*)</span>").matcher(submit);
-                String info = "";
+                Matcher matcherPoint = compile("<span [^>]*>([^<]*)</span>").matcher(submitHtml);
+                Integer score = 0;
                 while (matcherPoint.find()) {
                     String m = matcherPoint.group(1);
                     if(m.contains("分")){
-                        info = m;
+                        score = Integer.valueOf(m.substring(0,m.indexOf("分")));
                     }
                 }
-                if(submit.contains("抱歉")) {
-                    return "提交错误";
+                if(submitHtml.contains("抱歉")) {
+                    // TODO
                 }
-                if(submit.contains("交卷操作成功完成")) {
-                    Pattern pattern6 = compile("<font [^>]*>([^<]*)</font>");
-                    Matcher matcher6 = pattern6.matcher(submit);
+                if(submitHtml.contains("交卷操作成功完成")) {
+                    Matcher matcher6 = compile("<font [^>]*>([^<]*)</font>").matcher(submitHtml);
                     List<String> resultList = new ArrayList<>();
                     while (matcher6.find()) {
                         String r = matcher6.group(1);
@@ -233,46 +270,47 @@ public class QuestionController {
                         }
                     }
                     System.out.println("===========================更新答案库========================================");
-                    for (Map.Entry<String, String> map : intiMap.entrySet()) {
+                    for (Answer answerOld : answerOldList) {
                         for(int i=0;i<resultList.size();i++) {
-                            Answer questUpdate = new Answer();
-                            questUpdate.setQuestId(map.getKey());
                             if(resultList.get(i).equals("正确")){
-                                questUpdate.setAnswers(map.getValue());
-                                questUpdate.setIsCorrect(1);
+                                if(answerOld.getIsCorrect() != 1){
+                                    answerOld.setIsCorrect(1);
+                                    answerMapper.update(answerOld);
+                                }
                             }else if(resultList.get(i).equals("错误")){
                                 // 单选
-                                if(map.getKey().contains(zhang+1)){
-                                    questUpdate.setAnswers(DanXuan.getNote(DanXuan.getCode(map.getValue())+1));
+                                if(answerOld.getQuestId().contains(model.getZhangId()+1)){
+                                    answerOld.setAnswers(DanXuan.getNote(DanXuan.getCode(answerOld.getAnswers())+1));
                                 }
                                 // 多选
-                                else if(map.getKey().contains(zhang+2)){
-                                    questUpdate.setAnswers(DuoXuan.getNote(DuoXuan.getCode(map.getValue())+1));
+                                else if(answerOld.getQuestId().contains(model.getZhangId()+2)){
+                                    answerOld.setAnswers(DuoXuan.getNote(DuoXuan.getCode(answerOld.getAnswers())+1));
                                 }
                                 // 判断
-                                else if(map.getKey().contains(zhang+3)){
-                                    questUpdate.setAnswers(PanDuan.getNote(PanDuan.getCode(map.getValue())+1));
+                                else if(answerOld.getQuestId().contains(model.getZhangId()+3)){
+                                    answerOld.setAnswers(PanDuan.getNote(PanDuan.getCode(answerOld.getAnswers())+1));
                                 }
-                                questUpdate.setIsCorrect(0);
+                                answerOld.setIsCorrect(0);
+                                answerMapper.update(answerOld);
                             }
-                            AnswerMapper.update(questUpdate);
                             resultList.remove(i);
                             break;
                         }
                     }
-                    if(info.contains("20分")){
-                        System.out.println("已经全部答对");
-                        return "已经全部答对";
+                    model.setScore(score);
+                    model.setIsSubmit(0);
+                    if(score == 20){
+                        model.setIsComplete(1);
+                        System.out.println("已经完成答题");
                     }else{
-                        System.out.println("当前:"+ info +"，需要继续答题");
+                        System.out.println("当前:"+ score +"分，需要继续答题");
                     }
+                    testUserMapper.update(model);
                 }
             }
-
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        return "答题发生错误";
     }
 
 }

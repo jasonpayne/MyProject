@@ -25,7 +25,7 @@ public interface AnswerMapper {
      * @author xinchao.pan
      * @date 2020/02/04
      **/
-    List<Answer> selectForPage(Answer condition);
+    List<Answer> selectForList(Answer condition);
 
     /**
      * [新增]

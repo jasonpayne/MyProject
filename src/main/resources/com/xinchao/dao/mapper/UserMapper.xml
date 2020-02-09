@@ -4,7 +4,6 @@
 <mapper namespace="com.xinchao.dao.mapper.UserMapper">
 
     <resultMap id="ResultMap" type="com.xinchao.dao.entity.User" >
-        <result column="id" property="id" />
         <result column="uid" property="uid" />
         <result column="pw" property="pw" />
         <result column="ptop_id" property="ptopId" />
@@ -14,7 +13,6 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-                id,
                 uid,
                 pw,
                 ptop_id,
@@ -44,7 +42,7 @@
         </if>
     </sql>
 
-    <select id="selectForPage" resultMap="ResultMap">
+    <select id="selectForList" resultMap="ResultMap">
         SELECT <include refid="Base_Column_List" />
         FROM user
         WHERE 1 = 1
@@ -52,6 +50,12 @@
     </select>
 
     <select id="selectOne" resultMap="ResultMap" parameterType="com.xinchao.dao.entity.User">
+        SELECT <include refid="Base_Column_List" />
+        FROM user
+        WHERE uid = #{uid}
+    </select>
+
+    <select id="login" resultMap="ResultMap" parameterType="com.xinchao.dao.entity.User">
         SELECT <include refid="Base_Column_List" />
         FROM user
         WHERE uid = #{uid} AND pw = #{pw}
@@ -104,15 +108,12 @@
     <update id="update" parameterType="com.xinchao.dao.entity.User">
         UPDATE user
         <set>
-            <if test ='null != uid'>uid = #{uid},</if>
-            <if test ='null != pw'>pw = #{pw},</if>
             <if test ='null != ptopId'>ptop_id = #{ptopId},</if>
             <if test ='null != ruId'>ru_id = #{ruId},</if>
             <if test ='null != isClass'>is_class = #{isClass},</if>
             <if test ='null != isTest'>is_test = #{isTest},</if>
-            <if test ='null != createTime'>create_time = #{createTime}</if>
         </set>
-        WHERE id = #{id}
+        WHERE uid = #{uid} AND pw = #{pw}
     </update>
 
 </mapper>

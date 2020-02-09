@@ -20,7 +20,7 @@ public interface UserMapper {
      * @author xinchao.pan
      * @date 2020/02/07
      **/
-    List<User> selectForPage(User user);
+    List<User> selectForList(User user);
 
     /**
      * [查询] 根据主键 id 查询
@@ -28,6 +28,13 @@ public interface UserMapper {
      * @date 2020/02/07
      **/
     User selectOne(User user);
+
+    /**
+     * [查询] 根据主键 id 查询
+     * @author xinchao.pan
+     * @date 2020/02/07
+     **/
+    User login(User user);
 
     /**
      * [新增]

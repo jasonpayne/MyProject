@@ -1,9 +1,11 @@
 package com.xinchao.service.impl;
 
 import com.xinchao.dao.entity.User;
+import com.xinchao.dao.mapper.UserMapper;
 import com.xinchao.model.MajorTest;
 import com.xinchao.service.QuestionService;
 import com.xinchao.utils.HttpClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,6 +25,9 @@ import static java.util.regex.Pattern.compile;
 @Service
 public class QuestionServiceImpl implements QuestionService {
 
+    @Autowired
+    UserMapper userMapper;
+
     private static final String denglu = "http://202.196.64.120/vls2s/zzjlogin.dll/login";
 
 //    private static final String kecheng = "http://123.15.57.74/vls5s/vls3isapi2.dll/";
@@ -34,12 +39,15 @@ public class QuestionServiceImpl implements QuestionService {
      * @date 2020/02/04
      **/
     @Override
-    public boolean login(User user){
+    public String login(User user){
         String loginHtml = HttpClient.sendPost(denglu, "uid="+user.getUid()+"&pw="+user.getPw());
         if(loginHtml.contains("你无法进入系统")) {
-            return false;
+            return null;
         }else {
-            return true;
+            String ptopId = loginHtml.substring(loginHtml.indexOf("ptopid=") + "ptopid=".length(), loginHtml.indexOf("&sid="));
+            user.setPtopId(ptopId);
+            userMapper.update(user);
+            return ptopId;
         }
     }
 

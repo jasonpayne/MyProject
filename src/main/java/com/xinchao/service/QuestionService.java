@@ -16,7 +16,7 @@ import java.util.Map;
 public interface QuestionService {
 
     // 登陆接口
-    boolean login(User user);
+    String login(User user);
 
     // session登陆获取最佳
     List<String> majorList(User user);
