@@ -252,7 +252,7 @@ public class QuestionController {
                 return "没有需要提交的测试";
             }
             for (TestUser model : testList) {
-                List<String> questList = Arrays.asList(model.getQuests().split(","));
+                List<String> questList = new ArrayList(Arrays.asList(model.getQuests().split(",")));
                 Answer queryOld = new Answer();
                 queryOld.setZhengId(model.getZhangId());
                 List<Answer> answerList = answerMapper.selectForList(queryOld);
@@ -305,23 +305,23 @@ public class QuestionController {
                 }
                 if(submitHtml.contains("交卷操作成功完成")) {
                     Matcher submitMatcher = compile("<font [^>]*>([^<]*)</font>").matcher(submitHtml);
-                    List<String> resultList = new ArrayList<>();
+                    Map<String,String> answerResultMap = new TreeMap<>();
                     while (submitMatcher.find()) {
-                        String r = submitMatcher.group(1);
-                        if(r.contains("[对]")){
-                            resultList.add("正确");
-                        }else if(r.contains("[错]")){
-                            resultList.add("错误");
-                        }
-                    }
-                    for (Map.Entry<String, String> map : answerMap.entrySet()) {
-                        for (int i = 0 ;0 < resultList.size(); i++) {
-                            map.setValue(resultList.get(i));
-                            resultList.remove(i);
+                        for (int i = 0 ;i < questList.size(); i++) {
+                            String r = submitMatcher.group(1);
+                            if(r.contains("[对]")){
+                                answerResultMap.put(questList.get(i),"正确");
+                                questList.remove(i);
+                                break;
+                            }else if(r.contains("[错]")){
+                                answerResultMap.put(questList.get(i),"错误");
+                                questList.remove(i);
+                                break;
+                            }
                         }
                     }
                     System.out.println("===========================更新答案库========================================");
-                    for (Map.Entry<String, String> map : answerMap.entrySet()) {
+                    for (Map.Entry<String, String> map : answerResultMap.entrySet()) {
                         for (Answer answerNew : answerList) {
                             if(map.getKey().equals(answerNew.getQuestId())) {
                                 if(map.getValue().equals("正确")){
