@@ -241,39 +241,45 @@ public class QuestionServiceImpl implements QuestionService {
                 return "没有需要提交的测试";
             }
             for (TestUser model : testList) {
+                List<String> questList = new ArrayList(Arrays.asList(model.getQuests().split(",")));
                 Answer queryOld = new Answer();
                 queryOld.setZhengId(model.getZhangId());
-                List<Answer> answerOlds = answerMapper.selectForList(queryOld);
-                List<Answer> answerOldList = answerOlds.stream().sorted(Comparator.comparing(Answer::getQuestId))
-                        .collect(Collectors.toList());
+                List<Answer> answerList = answerMapper.selectForList(queryOld);
                 // 等待提交的答案
                 Map<String,String> answerMap = new TreeMap<>();
-                for (Answer answerOld : answerOldList) {
-                    if(answerOld.getQuestId().contains(model.getZhangId()+1)) {
-                        answerMap.put(answerOld.getQuestId(), answerOld.getAnswers());
-                    }else if(answerOld.getQuestId().contains(model.getZhangId()+2)){
-                        List<String> duoXuans = Arrays.asList(answerOld.getAnswers().split(","));
-                        for(String duoXuan : duoXuans){
-                            answerMap.put(answerOld.getQuestId()+duoXuan ,duoXuan);
+                for(String quest : questList){
+                    for (Answer answerOld : answerList) {
+                        if(quest.equals(answerOld.getQuestId()) && quest.contains(model.getZhangId()+1)) {
+                            answerMap.put(quest, answerOld.getAnswers());
+                            continue;
+                        }else if(quest.equals(answerOld.getQuestId()) && quest.contains(model.getZhangId()+2)){
+                            List<String> duoXuans = Arrays.asList(answerOld.getAnswers().split(","));
+                            for(String duoXuan : duoXuans){
+                                answerMap.put(quest+duoXuan ,duoXuan);
+                            }
+                            continue;
+                        }else if(quest.equals(answerOld.getQuestId()) && quest.contains(model.getZhangId()+3)){
+                            answerMap.put(quest, answerOld.getAnswers());
+                            continue;
                         }
-                    }else if(answerOld.getQuestId().contains(model.getZhangId()+3)){
-                        answerMap.put(answerOld.getQuestId(), answerOld.getAnswers());
                     }
                 }
+
                 User user = new User();
                 user.setUid(model.getUid());
                 User nowUser = userMapper.selectOne(user);
                 ptopId = nowUser.getPtopId();
                 String param = "submitpaper=submit&ptopid="+ptopId+"&paperid="+user.getUid()+model.getZhangId();
+                String answerParam = "";
                 for (Map.Entry<String, String> map : answerMap.entrySet()) {
-                    param = param + "&" + map.getKey() + "=" + map.getValue();
+                    answerParam = answerParam + "&" + map.getKey() + "=" + map.getValue();
                 }
                 String submitURL = "http://171.8.225.138/vls2s/vls3isapi.dll/smpaper";
-                String submitHtml = HttpClient.sendPost(submitURL, param);
+                String submitHtml = HttpClient.sendPost(submitURL, param + answerParam);
                 if(submitHtml.contains("你的登录信息已经失效")){
                     ptopId = login(nowUser);
                     param = "submitpaper=submit&ptopid="+ptopId+"&paperid="+user.getUid()+model.getZhangId();
-                    submitHtml = HttpClient.sendPost(submitURL, param);
+                    submitHtml = HttpClient.sendPost(submitURL, param + answerParam);
                 }
                 Matcher matcherPoint = compile("<span [^>]*>([^<]*)</span>").matcher(submitHtml);
                 Integer score = 0;
@@ -287,42 +293,49 @@ public class QuestionServiceImpl implements QuestionService {
                     // TODO
                 }
                 if(submitHtml.contains("交卷操作成功完成")) {
-                    Matcher matcher6 = compile("<font [^>]*>([^<]*)</font>").matcher(submitHtml);
-                    List<String> resultList = new ArrayList<>();
-                    while (matcher6.find()) {
-                        String r = matcher6.group(1);
-                        if(r.contains("[对]")){
-                            resultList.add("正确");
-                        }else if(r.contains("[错]")){
-                            resultList.add("错误");
+                    Matcher submitMatcher = compile("<font [^>]*>([^<]*)</font>").matcher(submitHtml);
+                    Map<String,String> answerResultMap = new TreeMap<>();
+                    while (submitMatcher.find()) {
+                        for (int i = 0 ;i < questList.size(); i++) {
+                            String r = submitMatcher.group(1);
+                            if(r.contains("[对]")){
+                                answerResultMap.put(questList.get(i),"正确");
+                                questList.remove(i);
+                                break;
+                            }else if(r.contains("[错]")){
+                                answerResultMap.put(questList.get(i),"错误");
+                                questList.remove(i);
+                                break;
+                            }
                         }
                     }
                     System.out.println("===========================更新答案库========================================");
-                    for (Answer answerOld : answerOldList) {
-                        for(int i=0;i<resultList.size();i++) {
-                            if(resultList.get(i).equals("正确")){
-                                if(answerOld.getIsCorrect() != 1){
-                                    answerOld.setIsCorrect(1);
-                                    answerMapper.update(answerOld);
+                    for (Map.Entry<String, String> map : answerResultMap.entrySet()) {
+                        for (Answer answerNew : answerList) {
+                            if(map.getKey().equals(answerNew.getQuestId())) {
+                                if(map.getValue().equals("正确")){
+                                    if(answerNew.getIsCorrect() != 1){
+                                        answerNew.setIsCorrect(1);
+                                        answerMapper.update(answerNew);
+                                    }
+                                }else if(map.getValue().equals("错误")){
+                                    // 单选
+                                    if(map.getKey().contains(model.getZhangId()+1)){
+                                        answerNew.setAnswers(DanXuan.getNote(DanXuan.getCode(answerNew.getAnswers())+1));
+                                    }
+                                    // 多选
+                                    else if(map.getKey().contains(model.getZhangId()+2)){
+                                        answerNew.setAnswers(DuoXuan.getNote(DuoXuan.getCode(answerNew.getAnswers())+1));
+                                    }
+                                    // 判断
+                                    else if(map.getKey().contains(model.getZhangId()+3)){
+                                        answerNew.setAnswers(PanDuan.getNote(PanDuan.getCode(answerNew.getAnswers())+1));
+                                    }
+                                    answerNew.setIsCorrect(0);
+                                    answerMapper.update(answerNew);
                                 }
-                            }else if(resultList.get(i).equals("错误")){
-                                // 单选
-                                if(answerOld.getQuestId().contains(model.getZhangId()+1)){
-                                    answerOld.setAnswers(DanXuan.getNote(DanXuan.getCode(answerOld.getAnswers())+1));
-                                }
-                                // 多选
-                                else if(answerOld.getQuestId().contains(model.getZhangId()+2)){
-                                    answerOld.setAnswers(DuoXuan.getNote(DuoXuan.getCode(answerOld.getAnswers())+1));
-                                }
-                                // 判断
-                                else if(answerOld.getQuestId().contains(model.getZhangId()+3)){
-                                    answerOld.setAnswers(PanDuan.getNote(PanDuan.getCode(answerOld.getAnswers())+1));
-                                }
-                                answerOld.setIsCorrect(0);
-                                answerMapper.update(answerOld);
+                                break;
                             }
-                            resultList.remove(i);
-                            break;
                         }
                     }
                     model.setScore(score);

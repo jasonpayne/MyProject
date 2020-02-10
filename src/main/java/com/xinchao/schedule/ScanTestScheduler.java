@@ -35,9 +35,9 @@ public class ScanTestScheduler {
     private static final String xuexi = "http://123.15.57.74/vls2s/vls3isapi.dll/";
 
     /**
-     * 定时扫描去完成测试任务
+     * 定时打开测试题
      */
-//    @Scheduled(cron = "0 0/3 * * * ?")
+    @Scheduled(cron = "0 0/5 * * * ?")
     @Async("asyncScheduleExecutor")
     public void scanTestScheduler() {
         LOGGER.info("定时打开测试题");
@@ -46,13 +46,12 @@ public class ScanTestScheduler {
 
 
     /**
-     * 定时扫描去完成测试任务
+     * 定时提交答案
      */
-//    @Scheduled(cron = "0 0/2 * * * ?")
+    @Scheduled(cron = "0 4,9,14,19,24,29,34,39,44,49,54,59 * * * ?")
     @Async("asyncScheduleExecutor")
     public void scanTest222Scheduler() {
         LOGGER.info("定时提交答案");
-        QuestionController questionController = new QuestionController();
         System.out.println(questionService.submitAnswer());
     }
 }
