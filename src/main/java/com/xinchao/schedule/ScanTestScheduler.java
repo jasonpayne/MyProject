@@ -37,20 +37,24 @@ public class ScanTestScheduler {
     /**
      * 定时打开测试题
      */
-    @Scheduled(cron = "0 0/5 * * * ?")
+//    @Scheduled(cron = "0 0,4,8,12,16,20,24,28,32,36,40,44,48,52,56 * * * ?")
+//    @Scheduled(cron = "0 0/5 * * * ?")
+//    @Scheduled(cron = "0 0,6,12,18,24,30,36,42,48,54 * * * ?")
     @Async("asyncScheduleExecutor")
     public void scanTestScheduler() {
         LOGGER.info("定时打开测试题");
         System.out.println(questionService.openTest());
+        scanSubmitScheduler();
     }
 
 
     /**
      * 定时提交答案
      */
-    @Scheduled(cron = "0 4,9,14,19,24,29,34,39,44,49,54,59 * * * ?")
+//    @Scheduled(cron = "0 3,7,11,15,19,23,27,31,35,39,43,47,51,55,59 * * * ?")
+//    @Scheduled(cron = "0 0/3 * * * ?")
     @Async("asyncScheduleExecutor")
-    public void scanTest222Scheduler() {
+    public void scanSubmitScheduler() {
         LOGGER.info("定时提交答案");
         System.out.println(questionService.submitAnswer());
     }

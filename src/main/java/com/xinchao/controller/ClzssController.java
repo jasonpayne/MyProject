@@ -1,4 +1,4 @@
-package com.xinchao.service.impl;
+package com.xinchao.controller;
 
 import com.xinchao.dao.entity.Answer;
 import com.xinchao.dao.entity.TestUser;
@@ -9,29 +9,28 @@ import com.xinchao.dao.mapper.UserMapper;
 import com.xinchao.enums.DanXuan;
 import com.xinchao.enums.DuoXuan;
 import com.xinchao.enums.PanDuan;
-import com.xinchao.model.MajorTest;
 import com.xinchao.service.QuestionService;
 import com.xinchao.utils.HttpClient;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
 import java.util.regex.Matcher;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
 
 /**
- * 实现通用方法
- * @author xinchao.pan
- * @date 2020/02/04
- * http://171.8.225.133/
+ * ClzssController 听课
+ * @author xinchao.pan 2020-02-04
  */
-@Service
-public class QuestionServiceImpl implements QuestionService {
+@RestController
+@RequestMapping("/clzss")
+public class ClzssController {
 
     @Autowired
     private AnswerMapper answerMapper;
@@ -42,113 +41,117 @@ public class QuestionServiceImpl implements QuestionService {
     @Autowired
     TestUserMapper testUserMapper;
 
-    private static final String denglu = "http://202.196.64.120/vls2s/zzjlogin.dll/login";
+    @Autowired
+    QuestionService questionService;
 
-//    private static final String kecheng = "http://123.15.57.74/vls5s/vls3isapi2.dll/";
-    private static final String kecheng = "http://171.8.225.133/vls5s/vls3isapi2.dll/";
-
-    /**
-     * [查询] 根据主键 id 查询
-     * @author xinchao.pan
-     * @date 2020/02/04
-     **/
-    @Override
-    public String login(User user){
-        String loginHtml = HttpClient.sendPost(denglu, "uid="+user.getUid()+"&pw="+user.getPw());
-        if(loginHtml.contains("你无法进入系统")) {
-            return null;
-        }else {
-            String ptopId = loginHtml.substring(loginHtml.indexOf("ptopid=") + "ptopid=".length(), loginHtml.indexOf("&sid="));
-            user.setPtopId(ptopId);
-            userMapper.update(user);
-            return ptopId;
-        }
-    }
-
-    /**
-     * 专业课列表
-     * @author xinchao.pan
-     * @date 2020/02/04
-     **/
-    @Override
-    public List<String> majorList(User user){
-        String homePageUrl = kecheng+"getfirstpage?ptopid="+user.getPtopId();
-        String homePage = HttpClient.sendGet(homePageUrl,  null);
-        if(homePage.contains("你的登录信息已经失效")){
-            return null;
-        }else {
-            List<String> majorList = new ArrayList<String>();
-            Matcher matcher = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>").matcher(homePage);
-            while (matcher.find()) {
-                String major = matcher.group(1).replace("\"", "");
-                if(major.contains("lookonecourse") && !major.contains("0027") && !major.contains("9011")){
-                    majorList.add(major);
+    @RequestMapping(value = "/register", method = RequestMethod.GET)
+    public String register(@RequestBody User user) {
+        try {
+            //发送 POST 请求登陆,注册已知课程
+            String ptopId = questionService.login(user);
+            if(ptopId == null) {
+                return "对不起，你输入的账号和密码未通过系统的验证";
+            }else{
+                User loginInfo = userMapper.login(user);
+                if(null != loginInfo){
+                    if(loginInfo.getIsClass() == 0 || loginInfo.getIsClass()==0){
+                        user.setPtopId(ptopId);
+                        userMapper.update(user);
+//                        register0(user);
+                        return "已经注册成功，正在操作，请稍等登陆查看";
+                    }else {
+                        return "已经注册成功，练习和答题已完成，请立即登陆查看";
+                    }
+                }else{
+                    // 插入系统，并且初始化数据
+                    user.setPtopId(ptopId);
+                    user.setIsClass(0);
+                    user.setIsTest(0);
+                    userMapper.insert(user);
+                    return "刚刚注册成功，正在操作，请稍等登陆查看。"+register0(user);
                 }
             }
-            return majorList;
+        } catch (Exception e) {
+            return e.getMessage();
         }
     }
 
-    /**
-     * 专业课详情（测试方向）
-     * @author xinchao.pan
-     * @date 2020/02/04
-     **/
-    @Override
-    public MajorTest majorDetailToTest(String majorUrl){
-        MajorTest model = new MajorTest();
-        // 获取keId
-        String keId = majorUrl.substring(majorUrl.indexOf("keid=")+"keid=".length());
-        model.setKeId(keId);
-        // 进入某个专业课的练习调用一
-        String majorTestTodoHtml = HttpClient.sendGet(majorUrl,  null);
-        String majorTestTodoUrl = null;
-        Matcher majorTestTodoMatcher = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>").matcher(majorTestTodoHtml);
-        while (majorTestTodoMatcher.find()) {
-            String r = majorTestTodoMatcher.group(1).replace("\"", "");
-            if(r.contains("mygetonetest")){
-                majorTestTodoUrl = r;
-                break;
+    public String register0(User user) {
+        try {
+            String reqFinal = "http://171.8.225.133/vls5s/vls3isapi2.dll/getfirstpage?ptopid="+user.getPtopId();
+            System.out.println(reqFinal);
+            // 打开学习主页
+            String allclass = HttpClient.sendGet(reqFinal, null);
+            System.out.println("===========================本学期所有需要学习课程==========================");
+            List<String> needList = new ArrayList<String>();
+            Pattern pattern = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
+            if(allclass.contains("你应已修习")){
+                allclass = allclass.substring(0,allclass.indexOf("你应已修习"));
             }
+            Matcher matcher = pattern.matcher(allclass);
+            while (matcher.find()) {
+                String r = matcher.group(1).replace("\"", "");
+                if (r.contains("lookonecourse")) {
+                    System.out.println(r);
+                    needList.add(r.substring(r.indexOf("keid=") + "keid=".length()));
+                }
+            }
+            System.out.println("===========================获取sid参数========================================");
+            String sid = null;
+            for(String needClass : needList){
+                String need = "http://171.8.225.170/vls2s/vls3isapi.dll/mygetonetest?ptopid=" + user.getPtopId() + "&keid=" + needClass;
+                String need0 = HttpClient.sendGet(need, null);
+                if(need0.contains("有效自测题数量不足")){
+                    continue;
+                }else {
+                    sid = need0.substring(need0.indexOf("&sid=") + "&sid=".length(), need0.indexOf("&wheres="));
+                    break;
+                }
+            }
+            if(StringUtils.isBlank(sid)){
+                return "没有需要测试的科目";
+            }
+            System.out.println("===========================添加本学期测试列表========================================");
+            String needQuery = "http://171.8.225.170/vls2s/vls3isapi.dll/myviewdatalist";
+            String needParam = "ptopid=" + user.getPtopId() + "&sid=" + sid;
+            System.out.println(needQuery+"?"+needParam);
+            List<String> testList = new ArrayList<>();
+            int sum = 0;
+            for (int i = 1; i <= 10; i++) {
+                System.out.println(needQuery + "?" + needParam + "&pn=" + i);
+                String testHtml = HttpClient.sendPost(needQuery, needParam + "&pn=" + i);
+                Pattern pattern4 = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
+                Matcher matcher4 = pattern4.matcher(testHtml);
+                while (matcher4.find()) {
+                    String r = matcher4.group(1).replace("\"", "").replace("testonce0", "testonce");
+                    TestUser testUser = new TestUser();
+                    testUser.setZhangId(r.substring(r.indexOf("zhang=") + "zhang=".length()));
+                    testUser.setUid(user.getUid());
+//                    testUser.setScore();//是多少就是多少！
+                    // TODO
+                    testUser.setIsComplete(0);
+                    testUser.setIsSubmit(0);
+                    testUserMapper.insert(testUser);
+                    testList.add(r);
+                }
+                if (i == 1) {
+                    sum = Integer.valueOf(testHtml.substring(testHtml.indexOf("共") + 1, testHtml.indexOf("条"))) / 25 + 1;
+                }
+                if (i == sum) {
+                    break;
+                }
+            }
+            if(null != testList && testList.size()>0){
+                return "需要做"+testList.size()+"套测试题";
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return e.getMessage();
         }
-        // 获取ruid
-        String ruid = majorTestTodoUrl.substring(majorTestTodoUrl.indexOf("ruid=")+"ruid=".length(), majorTestTodoUrl.indexOf("&keid="));
-        model.setRuid(ruid);
-        // 进入某个专业课的练习调用二
-        String majorTestHtml = HttpClient.sendGet(majorTestTodoUrl,  null);
-        String majorTestUrl = null;
-        Matcher majorTestMatcher = compile("url=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)").matcher(majorTestHtml);
-        while (majorTestMatcher.find()) {
-            String r = majorTestMatcher.group(1).replace("\'", "");
-            System.out.println(r);
-            majorTestUrl = r;
-        }
-        model.setTestListUrl(majorTestUrl);
-        return model;
+        return null;
     }
 
-    /**
-     * 测试列表
-     * @author xinchao.pan
-     * @date 2020/02/04
-     **/
-    @Override
-    public List<Map<String,Object>> testList(String testListUrl){
-        // Todo 分值没有获取。可用用来判断是否还需要答题
-        List<Map<String,Object>> testList = new ArrayList<>();
-        Map<String,Object> testMap = new HashMap<>();
-        String testListHtml = HttpClient.sendGet(testListUrl,  null);
-        Matcher testListMatcher = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>").matcher(testListHtml);
-        while (testListMatcher.find()) {
-            String r = testListMatcher.group(1).replace("\"", "").replace("testonce0","testonce");
-            System.out.println(r);
-            testMap.put(r,10);
-            testList.add(testMap);
-        }
-        return testList;
-    }
-
-    @Override
+    @RequestMapping(value = "/openTest", method = RequestMethod.GET)
     public String openTest() {
         try {
             String ptopId = "";
@@ -158,6 +161,7 @@ public class QuestionServiceImpl implements QuestionService {
             if(null == testList ||testList.size() == 0){
                 return "没有打开的题目";
             }
+            int aa = 0;
             for (TestUser model : testList) {
                 User user = new User();
                 user.setUid(model.getUid());
@@ -166,18 +170,17 @@ public class QuestionServiceImpl implements QuestionService {
                 String testDetailUrl = "http://171.8.225.138/vls2s/vls3isapi.dll/testonce?ptopid=" + ptopId + "&zhang=" + model.getZhangId();
                 String testDetailHtml = HttpClient.sendGet(testDetailUrl, null);
                 if(testDetailHtml.contains("你的登录信息已经失效")){
-                    ptopId = login(nowUser);
+                    ptopId = questionService.login(nowUser);
                     testDetailUrl = "http://171.8.225.138/vls2s/vls3isapi.dll/testonce?ptopid=" + ptopId + "&zhang=" + model.getZhangId();
                     testDetailHtml = HttpClient.sendGet(testDetailUrl, null);
                 }
                 Matcher testDetailMatcher = compile("<input" + "[^<>]*?\\s" + "name=['\"]?(.*?)['\"]?(\\s.*?)?>").matcher(testDetailHtml);
-                // 本章当前需要完成的题目
+                // 本章需要完成的题目
                 TreeSet<String> questionSet = new TreeSet();
                 while (testDetailMatcher.find()) {
                     String r = testDetailMatcher.group(1);
                     if(r.contains(model.getZhangId())){
-                        if(r.contains("A") || r.contains("B") || r.contains("C") || r.contains("D") || r.contains("E")
-                                || r.contains("F")|| r.contains("G")|| r.contains("H")|| r.contains("i")|| r.contains("j")){
+                        if(r.contains("A") || r.contains("B") || r.contains("C") || r.contains("D") || r.contains("E")){
                             questionSet.add(r.substring(0,r.length()-1));
                         }else {
                             questionSet.add(r);
@@ -212,9 +215,9 @@ public class QuestionServiceImpl implements QuestionService {
                     sb.append(str+",");
                 }
                 model.setQuests(sb.toString());
+                System.out.println(aa++);
             }
-            int aa = 0;
-            if(null != testList && testList.size() > 0){
+            if(null != testList && testList.size()>0){
                 // 答题需要延迟2分钟提交
                 int k = 1;
                 while (k < 5) {
@@ -226,20 +229,20 @@ public class QuestionServiceImpl implements QuestionService {
                     if(StringUtils.isBlank(model.getQuests())){
                         testUserMapper.delete(model.getId());
                     }else{
-                        aa++;
                         model.setIsSubmit(1);
                         testUserMapper.update(model);
                     }
                 }
+                return "已经打开"+testList.size()+"道题目";
             }
-            return "已经打开"+aa+"道题目";
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return e.getMessage();
         }
+        return null;
     }
 
-    @Override
+    @RequestMapping(value = "/submitAnswer", method = RequestMethod.GET)
     public String submitAnswer() {
         try {
             String ptopId = "";
@@ -287,7 +290,7 @@ public class QuestionServiceImpl implements QuestionService {
                 String submitURL = "http://171.8.225.138/vls2s/vls3isapi.dll/smpaper";
                 String submitHtml = HttpClient.sendPost(submitURL, param + answerParam);
                 if(submitHtml.contains("你的登录信息已经失效")){
-                    ptopId = login(nowUser);
+                    ptopId = questionService.login(nowUser);
                     param = "submitpaper=submit&ptopid="+ptopId+"&paperid="+user.getUid()+model.getZhangId();
                     submitHtml = HttpClient.sendPost(submitURL, param + answerParam);
                 }

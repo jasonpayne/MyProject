@@ -6,7 +6,7 @@
     <resultMap id="ResultMap" type="com.xinchao.dao.entity.Answer" >
         <result column="id" property="id" />
         <result column="quest_id" property="questId" />
-        <result column="zheng_id" property="zhengId" />
+        <result column="zhang_id" property="zhangId" />
         <result column="ke_id" property="keId" />
         <result column="answers" property="answers" />
         <result column="is_correct" property="isCorrect" />
@@ -15,7 +15,7 @@
     <sql id="Base_Column_List">
                 id,
                 quest_id,
-                zheng_id,
+                zhang_id,
                 ke_id,
                 answers,
                 is_correct
@@ -25,8 +25,8 @@
         <if test="questId != null and questId != '' ">
             AND quest_id = #{questId}
         </if>
-        <if test="zhengId != null and zhengId != '' ">
-            AND zheng_id = #{zhengId}
+        <if test="zhangId != null and zhangId != '' ">
+            AND zhang_id = #{zhangId}
         </if>
         <if test="keId != null and keId != '' ">
             AND ke_id = #{keId}
@@ -58,8 +58,8 @@
             <if test ='null != questId'>
                 quest_id,
             </if>
-            <if test ='null != zhengId'>
-                zheng_id,
+            <if test ='null != zhangId'>
+                zhang_id,
             </if>
             <if test ='null != keId'>
                 ke_id,
@@ -75,8 +75,8 @@
             <if test ='null != questId'>
                 #{questId},
             </if>
-            <if test ='null != zhengId'>
-                #{zhengId},
+            <if test ='null != zhangId'>
+                #{zhangId},
             </if>
             <if test ='null != keId'>
                 #{keId},
@@ -91,16 +91,16 @@
     </insert>
 
     <insert id="insertBatch" parameterType="com.xinchao.dao.entity.Answer">
-        insert into answer (quest_id, zheng_id, ke_id, answers, is_correct) values
+        insert into answer (quest_id, zhang_id, ke_id, answers, is_correct) values
         <foreach collection="list" item="item" separator=",">
-            (#{item.questId}, #{item.zhengId}, #{item.keId}, #{item.answers}, #{item.isCorrect})
+            (#{item.questId}, #{item.zhangId}, #{item.keId}, #{item.answers}, #{item.isCorrect})
         </foreach>
     </insert>
 
     <update id="update" parameterType="com.xinchao.dao.entity.Answer">
         UPDATE answer
         <set>
-            <if test ='null != zhengId'>zheng_id = #{zhengId},</if>
+            <if test ='null != zhangId'>zhang_id = #{zhangId},</if>
             <if test ='null != keId'>ke_id = #{keId},</if>
             <if test ='null != answers'>answers = #{answers},</if>
             <if test ='null != isCorrect'>is_correct = #{isCorrect}</if>

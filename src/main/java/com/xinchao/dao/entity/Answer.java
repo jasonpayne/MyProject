@@ -20,7 +20,7 @@ public class Answer {
     /**
      * 所属章节
      */
-    private String zhengId;
+    private String zhangId;
 
     /**
      * 所属课程
