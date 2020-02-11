@@ -39,7 +39,7 @@ public class Answer {
     private String answerSize;
 
     /**
-     * 答案状态;-1表示初始化; 0:表示错误;1:表示正确
+     * 答案状态;-1表示初始化; 0:表示错误;1:表示正确;2:答案太多，暂时不枚举
      */
     private Integer isCorrect;
 

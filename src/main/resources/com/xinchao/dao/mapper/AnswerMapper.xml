@@ -55,7 +55,7 @@
     <select id="selectOne" resultMap="ResultMap">
         SELECT <include refid="Base_Column_List" />
         FROM answer
-        WHERE id = #{id}
+        WHERE quest_id = #{questId}
     </select>
 
     <insert id="insert"  parameterType="com.xinchao.dao.entity.Answer">
@@ -127,6 +127,7 @@
             <if test ='null != zhangId'>zhang_id = #{zhangId},</if>
             <if test ='null != keId'>ke_id = #{keId},</if>
             <if test ='null != answers'>answers = #{answers},</if>
+            <if test ='null != answerSize'>answer_size = #{answerSize},</if>
             <if test ='null != isCorrect'>is_correct = #{isCorrect}</if>
         </set>
         WHERE quest_id = #{questId}

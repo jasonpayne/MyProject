@@ -18,7 +18,7 @@ public interface AnswerMapper {
      * @author xinchao.pan
      * @date 2020/02/04
      **/
-    Answer selectOne(int id);
+    Answer selectOne(String id);
 
     /**
      * 列表查询

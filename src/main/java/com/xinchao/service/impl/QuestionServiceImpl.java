@@ -190,10 +190,8 @@ public class QuestionServiceImpl implements QuestionService {
 
                 // 初始化答案
                 for (String str : questionSet) {
-                    Answer info = new Answer();
-                    info.setQuestId(str);
-                    List<Answer> quest = answerMapper.selectForList(info);
-                    if(null == quest || quest.size() == 0){
+                    Answer quest = answerMapper.selectOne(str);
+                    if(null == quest){
                         Answer isNotAnswer = new Answer();
                         isNotAnswer.setQuestId(str);
                         isNotAnswer.setZhangId(model.getZhangId());
@@ -257,11 +255,11 @@ public class QuestionServiceImpl implements QuestionService {
             }
             for (TestUser model : testList) {
                 List<String> questList = new ArrayList(Arrays.asList(model.getQuests().split(",")));
-                Answer queryOld = new Answer();
-                queryOld.setZhangId(model.getZhangId());
-                // 当前数据库中答案
-                List<Answer> answerList = answerMapper.selectForList(queryOld);
-                // 等待提交的答案
+                Answer zhangOld = new Answer();
+                zhangOld.setZhangId(model.getZhangId());
+                // 当前数据库中答案（全部这个章节下的答案）
+                List<Answer> answerList = answerMapper.selectForList(zhangOld);
+                // 等待提交的答案的格式
                 Map<String,String> answerMap = new TreeMap<>();
                 for(String quest : questList){
                     for (Answer answerOld : answerList) {
@@ -298,7 +296,7 @@ public class QuestionServiceImpl implements QuestionService {
                     submitHtml = HttpClient.sendPost(submitURL, param + answerParam);
                 }
                 Matcher matcherPoint = compile("<span [^>]*>([^<]*)</span>").matcher(submitHtml);
-                Integer score = 0;
+                int score = 0;
                 while (matcherPoint.find()) {
                     String m = matcherPoint.group(1);
                     if(m.contains("分")){
@@ -326,6 +324,7 @@ public class QuestionServiceImpl implements QuestionService {
                         }
                     }
                     System.out.println("===========================更新答案库========================================");
+                    int noAnswers = 0;
                     for (Map.Entry<String, String> map : answerResultMap.entrySet()) {
                         for (Answer answerNew : answerList) {
                             if(map.getKey().equals(answerNew.getQuestId())) {
@@ -337,17 +336,36 @@ public class QuestionServiceImpl implements QuestionService {
                                 }else if(map.getValue().equals("错误")){
                                     // 单选
                                     if(map.getKey().contains(model.getZhangId()+1)){
-                                        answerNew.setAnswers(DanXuan.getNote(DanXuan.getCode(answerNew.getAnswers())+1));
+                                        if(answerNew.getAnswers().equals("D")){
+                                            answerNew.setIsCorrect(2);
+                                            noAnswers = noAnswers + 1;
+                                        }else{
+                                            answerNew.setAnswers(DanXuan.getNote(DanXuan.getCode(answerNew.getAnswers())+1));
+                                        }
                                     }
                                     // 多选
                                     else if(map.getKey().contains(model.getZhangId()+2)){
-                                        answerNew.setAnswers(DuoXuan.getNote(DuoXuan.getCode(answerNew.getAnswers())+1));
+                                        if(StringUtils.isNotBlank(answerNew.getAnswerSize()) && "FGHIJ".contains(answerNew.getAnswerSize())){
+                                            answerNew.setIsCorrect(2);
+                                            noAnswers = noAnswers + 2;
+                                        }else{
+                                            if(answerNew.getAnswers().equals("E")){
+                                                answerNew.setIsCorrect(2);
+                                                noAnswers = noAnswers + 2;
+                                            }else{
+                                                answerNew.setAnswers(DuoXuan.getNote(DuoXuan.getCode(answerNew.getAnswers())+1));
+                                            }
+                                        }
                                     }
                                     // 判断
                                     else if(map.getKey().contains(model.getZhangId()+3)){
-                                        answerNew.setAnswers(PanDuan.getNote(PanDuan.getCode(answerNew.getAnswers())+1));
+                                        if(answerNew.getAnswers().equals("N")){
+                                            answerNew.setIsCorrect(2);
+                                            noAnswers = noAnswers + 1;
+                                        }else{
+                                            answerNew.setAnswers(PanDuan.getNote(PanDuan.getCode(answerNew.getAnswers())+1));
+                                        }
                                     }
-                                    answerNew.setIsCorrect(0);
                                     answerMapper.update(answerNew);
                                 }
                                 break;
@@ -359,8 +377,13 @@ public class QuestionServiceImpl implements QuestionService {
                     if(score == 20){
                         model.setIsComplete(1);
                         System.out.println("已经完成答题");
-                    }else{
-                        System.out.println("当前:"+ score +"分，需要继续答题");
+                    }else {
+                        if(score + noAnswers == 20){
+                            model.setIsComplete(2);
+                            System.out.println("当前:"+ score +"分，存在没有正确答案和多选题F以上的题目，暂停答题");
+                        }else {
+                            System.out.println("当前:"+ score +"分，需要继续答题");
+                        }
                     }
                     testUserMapper.update(model);
                 }
