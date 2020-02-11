@@ -9,7 +9,10 @@
         <result column="zhang_id" property="zhangId" />
         <result column="ke_id" property="keId" />
         <result column="answers" property="answers" />
+        <result column="answer_size" property="answerSize" />
         <result column="is_correct" property="isCorrect" />
+        <result column="quest_name" property="questName" />
+        <result column="answers_name" property="answerName" />
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -18,7 +21,10 @@
                 zhang_id,
                 ke_id,
                 answers,
-                is_correct
+                answer_size,
+                is_correct,
+                quest_name,
+                answers_name
     </sql>
 
     <sql id="whereSQL">
@@ -67,8 +73,17 @@
             <if test ='null != answers'>
                 answers,
             </if>
+            <if test ='null != answerSize'>
+                answer_size,
+            </if>
             <if test ='null != isCorrect'>
-                is_correct
+                is_correct,
+            </if>
+            <if test ='null != questName'>
+                quest_name,
+            </if>
+            <if test ='null != answerName'>
+                answers_name
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -84,8 +99,17 @@
             <if test ='null != answers'>
                 #{answers},
             </if>
+            <if test ='null != answerSize'>
+                #{answer_size},
+            </if>
             <if test ='null != isCorrect'>
-                #{isCorrect}
+                #{isCorrect},
+            </if>
+            <if test ='null != questName'>
+                #{quest_name},
+            </if>
+            <if test ='null != questName'>
+                #{answers_name}
             </if>
         </trim>
     </insert>

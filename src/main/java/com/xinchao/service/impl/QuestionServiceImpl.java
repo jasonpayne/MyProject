@@ -154,6 +154,7 @@ public class QuestionServiceImpl implements QuestionService {
             String ptopId = "";
             TestUser testUser = new TestUser();
             testUser.setIsComplete(0);
+            testUser.setIsSubmit(0);
             List<TestUser> testList = testUserMapper.selectForList(testUser);
             if(null == testList ||testList.size() == 0){
                 return "没有打开的题目";
@@ -173,17 +174,20 @@ public class QuestionServiceImpl implements QuestionService {
                 Matcher testDetailMatcher = compile("<input" + "[^<>]*?\\s" + "name=['\"]?(.*?)['\"]?(\\s.*?)?>").matcher(testDetailHtml);
                 // 本章当前需要完成的题目
                 TreeSet<String> questionSet = new TreeSet();
+                Map<String,String> map = new HashMap<>();
                 while (testDetailMatcher.find()) {
                     String r = testDetailMatcher.group(1);
                     if(r.contains(model.getZhangId())){
                         if(r.contains("A") || r.contains("B") || r.contains("C") || r.contains("D") || r.contains("E")
                                 || r.contains("F")|| r.contains("G")|| r.contains("H")|| r.contains("i")|| r.contains("j")){
                             questionSet.add(r.substring(0,r.length()-1));
+                            map.put(r.substring(0,r.length()-1),r.substring(r.length()-1));
                         }else {
                             questionSet.add(r);
                         }
                     }
                 }
+
                 // 初始化答案
                 for (String str : questionSet) {
                     Answer info = new Answer();
@@ -198,6 +202,7 @@ public class QuestionServiceImpl implements QuestionService {
                         }
                         else if(str.contains(model.getZhangId()+2)){
                             isNotAnswer.setAnswers("A,B,C,D");
+                            isNotAnswer.setAnswerSize(map.get(str));
                         }
                         else if(str.contains(model.getZhangId()+3)){
                             isNotAnswer.setAnswers("Y");
@@ -213,7 +218,7 @@ public class QuestionServiceImpl implements QuestionService {
                 }
                 model.setQuests(sb.toString());
             }
-            int aa = 0;
+            int count = 0;
             if(null != testList && testList.size() > 0){
                 // 答题需要延迟2分钟提交
                 int k = 1;
@@ -226,13 +231,13 @@ public class QuestionServiceImpl implements QuestionService {
                     if(StringUtils.isBlank(model.getQuests())){
                         testUserMapper.delete(model.getId());
                     }else{
-                        aa++;
+                        count ++;
                         model.setIsSubmit(1);
                         testUserMapper.update(model);
                     }
                 }
             }
-            return "已经打开"+aa+"道题目";
+            return "已经打开"+count+"道题目";
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return e.getMessage();
@@ -254,6 +259,7 @@ public class QuestionServiceImpl implements QuestionService {
                 List<String> questList = new ArrayList(Arrays.asList(model.getQuests().split(",")));
                 Answer queryOld = new Answer();
                 queryOld.setZhangId(model.getZhangId());
+                // 当前数据库中答案
                 List<Answer> answerList = answerMapper.selectForList(queryOld);
                 // 等待提交的答案
                 Map<String,String> answerMap = new TreeMap<>();

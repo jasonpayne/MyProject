@@ -28,15 +28,4 @@ public interface QuestionService {
     String openTest();
 
     String submitAnswer();
-
-//    MajorTest testDetail(String majorUrl);
-
-
-    /*List<QuestionBank> selectForPage(QuestionBank condition);
-
-    int insert(QuestionBank question);
-
-    int insertBatch(List<QuestionBank> list);
-
-    int update(QuestionBank question);*/
 }

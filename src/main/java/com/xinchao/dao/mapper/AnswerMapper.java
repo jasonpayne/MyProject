@@ -25,14 +25,14 @@ public interface AnswerMapper {
      * @author xinchao.pan
      * @date 2020/02/04
      **/
-    List<Answer> selectForList(Answer condition);
+    List<Answer> selectForList(Answer answer);
 
     /**
      * [新增]
      * @author xinchao.pan
      * @date 2020/02/04
      **/
-    int insert(Answer question);
+    int insert(Answer answer);
 
     /**
      * 人像批量添加
@@ -46,6 +46,6 @@ public interface AnswerMapper {
      * @author xinchao.pan
      * @date 2020/02/04
      **/
-    int update(Answer question);
+    int update(Answer answer);
 
 }
