@@ -19,7 +19,7 @@
                 uid,
                 quests,
                 score,
-                is_complete
+                is_complete,
                 is_submit
     </sql>
 

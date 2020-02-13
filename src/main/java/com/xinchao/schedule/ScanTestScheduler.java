@@ -1,9 +1,6 @@
 package com.xinchao.schedule;
 
-import com.xinchao.controller.QuestionController;
-import com.xinchao.dao.entity.User;
 import com.xinchao.dao.mapper.UserMapper;
-import com.xinchao.model.MajorTest;
 import com.xinchao.service.QuestionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +9,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
- * 扫描检测识别端核心板
+ * 测试
  *
  * @author xinchao.pan@bitmain.com
  */
@@ -40,7 +35,7 @@ public class ScanTestScheduler {
 //    @Scheduled(cron = "0 0,4,8,12,16,20,24,28,32,36,40,44,48,52,56 * * * ?")
 //    @Scheduled(cron = "0 0/5 * * * ?")
 //    @Scheduled(cron = "0 0,6,12,18,24,30,36,42,48,54 * * * ?")
-    @Scheduled(cron = "0 0/3 * * * ?")
+    @Scheduled(cron = "0 0/6 * * * ?")
     @Async("asyncScheduleExecutor")
     public void scanTestScheduler() {
         LOGGER.info("定时打开测试题");

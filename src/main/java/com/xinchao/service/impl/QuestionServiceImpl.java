@@ -15,12 +15,9 @@ import com.xinchao.utils.HttpClient;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.util.*;
 import java.util.regex.Matcher;
-import java.util.stream.Collectors;
 
 import static java.util.regex.Pattern.compile;
 
@@ -171,6 +168,7 @@ public class QuestionServiceImpl implements QuestionService {
                     testDetailUrl = "http://171.8.225.138/vls2s/vls3isapi.dll/testonce?ptopid=" + ptopId + "&zhang=" + model.getZhangId();
                     testDetailHtml = HttpClient.sendGet(testDetailUrl, null);
                 }
+
                 Matcher testDetailMatcher = compile("<input" + "[^<>]*?\\s" + "name=['\"]?(.*?)['\"]?(\\s.*?)?>").matcher(testDetailHtml);
                 // 本章当前需要完成的题目
                 TreeSet<String> questionSet = new TreeSet();
@@ -187,7 +185,6 @@ public class QuestionServiceImpl implements QuestionService {
                         }
                     }
                 }
-
                 // 初始化答案
                 for (String str : questionSet) {
                     Answer quest = answerMapper.selectOne(str);
