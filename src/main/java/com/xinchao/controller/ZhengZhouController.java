@@ -84,8 +84,16 @@ public class ZhengZhouController {
         }
     }
 
-    public String register0(User user) {
+    /*@RequestMapping(value = "/aaa", method = RequestMethod.GET)
+    public void aaa() {
+        List<User> select = userMapper.selectForList(new User());
+        for(User user : select){
+            String ptopId = questionService.login(user);
+            register0(user);
+        }
+    }*/
 
+    public String register0(User user) {
         try {
             String ptopId = null;
             // 打开学习主页
@@ -105,30 +113,34 @@ public class ZhengZhouController {
             Matcher matcher = pattern.matcher(allclass);
             while (matcher.find()) {
                 String r = matcher.group(1).replace("\"", "");
-                if (r.contains("lookonecourse")) {
+                if (r.contains("lookonecourse") ) {
                     String keId = r.substring(r.indexOf("keid=") + "keid=".length());
-                    keChengList.add(keId);
-                    // 听课
-                    String KeChengDetailUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+user.getPtopId()+"&keid="+keId;
-                    String KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
-                    if(KeChengDetailHtml.contains("你的登录信息已经失效")){
-                        ptopId = questionService.login(user);
-                        KeChengDetailUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+ptopId+"&keid="+keId;
-                        KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
-                    }
-                    Document document = Jsoup.parse(KeChengDetailHtml);
-                    String text = document.body().text().trim();
-                    if(!text.contains("共10分，你已取得10分") && !text.contains("因库中无有效课件，你直接取得10分")){
-                        ClazzUser clazzUser = new ClazzUser();
-                        clazzUser.setClzssId(keId);
-                        clazzUser.setUid(user.getUid());
-                        String score = text.substring(text.indexOf("共10分，你已取得")+"共10分，你已取得".length(), text.indexOf("共10分，你已取得")+"共10分，你已取得".length()+1);
-                        clazzUser.setScore(Integer.valueOf(score));
-                        clazzUser.setIsComplete(0);
-                        clazzUserMapper.insert(clazzUser);
+                    if (!keId.equals("0027") && !keId.equals("9011")){
+                        keChengList.add(keId);
+                        // 听课
+                        String KeChengDetailUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+user.getPtopId()+"&keid="+keId;
+                        String KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
+                        if(KeChengDetailHtml.contains("你的登录信息已经失效")){
+                            ptopId = questionService.login(user);
+                            KeChengDetailUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+ptopId+"&keid="+keId;
+                            KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
+                        }
+                        Document document = Jsoup.parse(KeChengDetailHtml);
+                        String text = document.body().text().trim();
+                        if(!text.contains("共10分，你已取得10分") && !text.contains("因库中无有效课件，你直接取得10分")&& !text.contains("因库中无有效课件，你直接取得10分")){
+                            ClazzUser clazzUser = new ClazzUser();
+                            clazzUser.setClzssId(keId);
+                            clazzUser.setUid(user.getUid());
+                            String score = text.substring(text.indexOf("共10分，你已取得")+"共10分，你已取得".length(), text.indexOf("共10分，你已取得")+"共10分，你已取得".length()+1);
+                            System.out.println(user.getUid() + "==="+  user.getPw() + "==="+ keId+"========"+score);
+                            clazzUser.setScore(Integer.valueOf(score));
+                            clazzUser.setIsComplete(0);
+                            clazzUserMapper.insert(clazzUser);
+                        }
                     }
                 }
             }
+
             System.out.println("===========================获取sid参数========================================");
             String sid = null;
             for(String keCheng : keChengList){
