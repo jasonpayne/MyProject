@@ -1,13 +1,18 @@
 package com.xinchao.controller;
 
+import com.xinchao.dao.entity.ClazzUser;
 import com.xinchao.dao.entity.TestUser;
 import com.xinchao.dao.entity.User;
 import com.xinchao.dao.mapper.AnswerMapper;
+import com.xinchao.dao.mapper.ClazzUserMapper;
 import com.xinchao.dao.mapper.TestUserMapper;
 import com.xinchao.dao.mapper.UserMapper;
+import com.xinchao.service.ClazzService;
 import com.xinchao.service.QuestionService;
 import com.xinchao.utils.HttpClient;
 import org.apache.commons.lang.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +32,7 @@ import static java.util.regex.Pattern.compile;
  */
 @RestController
 @RequestMapping("/question")
-public class QuestionController {
+public class ZhengZhouController {
 
     @Autowired
     private AnswerMapper answerMapper;
@@ -39,7 +44,13 @@ public class QuestionController {
     TestUserMapper testUserMapper;
 
     @Autowired
+    ClazzUserMapper clazzUserMapper;
+
+    @Autowired
     QuestionService questionService;
+
+    @Autowired
+    ClazzService clazzService;
 
     @RequestMapping(value = "/register", method = RequestMethod.GET)
     public String register(@RequestBody User user) {
@@ -74,13 +85,19 @@ public class QuestionController {
     }
 
     public String register0(User user) {
+
         try {
-            String reqFinal = "http://171.8.225.133/vls5s/vls3isapi2.dll/getfirstpage?ptopid="+user.getPtopId();
-            System.out.println(reqFinal);
+            String ptopId = null;
             // 打开学习主页
+            String reqFinal = "http://171.8.225.133/vls5s/vls3isapi2.dll/getfirstpage?ptopid="+user.getPtopId();
             String allclass = HttpClient.sendGet(reqFinal, null);
+            if(allclass.contains("你的登录信息已经失效")){
+                ptopId = questionService.login(user);
+                reqFinal = "http://171.8.225.133/vls5s/vls3isapi2.dll/getfirstpage?ptopid="+ptopId;
+                allclass = HttpClient.sendGet(reqFinal, null);
+            }
             System.out.println("===========================本学期所有需要学习课程==========================");
-            List<String> needList = new ArrayList<String>();
+            List<String> keChengList = new ArrayList<String>();
             Pattern pattern = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
             if(allclass.contains("你应已修习")){
                 allclass = allclass.substring(0,allclass.indexOf("你应已修习"));
@@ -89,20 +106,38 @@ public class QuestionController {
             while (matcher.find()) {
                 String r = matcher.group(1).replace("\"", "");
                 if (r.contains("lookonecourse")) {
-                    System.out.println(r);
-                    needList.add(r.substring(r.indexOf("keid=") + "keid=".length()));
+                    String keId = r.substring(r.indexOf("keid=") + "keid=".length());
+                    keChengList.add(keId);
+                    // 听课
+                    String KeChengDetailUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+user.getPtopId()+"&keid="+keId;
+                    String KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
+                    if(KeChengDetailHtml.contains("你的登录信息已经失效")){
+                        ptopId = questionService.login(user);
+                        KeChengDetailUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+ptopId+"&keid="+keId;
+                        KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
+                    }
+                    Document document = Jsoup.parse(KeChengDetailHtml);
+                    String text = document.body().text().trim();
+                    if(!text.contains("共10分，你已取得10分") || !text.contains("因库中无有效课件，你直接取得10分")){
+                        ClazzUser clazzUser = new ClazzUser();
+                        clazzUser.setClzssId(keId);
+                        clazzUser.setUid(user.getUid());
+                        String score = text.substring(text.indexOf("共10分，你已取得")+"共10分，你已取得".length(), 1);
+                        clazzUser.setScore(Integer.valueOf(score));
+                        clazzUser.setIsComplete(0);
+                        clazzUserMapper.insert(clazzUser);
+                    }
                 }
             }
             System.out.println("===========================获取sid参数========================================");
             String sid = null;
-            for(String needClass : needList){
-                String need = "http://171.8.225.170/vls2s/vls3isapi.dll/mygetonetest?ptopid=" + user.getPtopId() + "&keid=" + needClass;
-                String need0 = HttpClient.sendGet(need, null);
-                if(need0.contains("有效自测题数量不足")){
-                    continue;
-                }else {
-                    sid = need0.substring(need0.indexOf("&sid=") + "&sid=".length(), need0.indexOf("&wheres="));
-                    break;
+            for(String keCheng : keChengList){
+                String testUrl = "http://171.8.225.170/vls2s/vls3isapi.dll/mygetonetest?ptopid=" + user.getPtopId() + "&keid=" + keCheng;
+                String testHtml = HttpClient.sendGet(testUrl, null);
+                // 测试
+                if(!testHtml.contains("有效自测题数量不足")){
+                   sid = testHtml.substring(testHtml.indexOf("&sid=") + "&sid=".length(), testHtml.indexOf("&wheres="));
+                   break;
                 }
             }
             if(StringUtils.isBlank(sid)){
@@ -117,13 +152,18 @@ public class QuestionController {
             for (int i = 1; i <= 10; i++) {
                 System.out.println(needQuery + "?" + needParam + "&pn=" + i);
                 String testHtml = HttpClient.sendPost(needQuery, needParam + "&pn=" + i);
+                if(testHtml.contains("你的登录信息已经失效")){
+                    ptopId = questionService.login(user);
+                    needParam = "ptopid=" + ptopId + "&sid=" + sid;
+                    testHtml = HttpClient.sendGet(needQuery, needParam);
+                }
                 Pattern pattern4 = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
                 Matcher matcher4 = pattern4.matcher(testHtml);
                 while (matcher4.find()) {
                     String r = matcher4.group(1).replace("\"", "").replace("testonce0", "testonce");
                     String ZhangId = r.substring(r.indexOf("zhang=") + "zhang=".length());
                     String keId =  ZhangId.substring(0 , 4);
-                    if(needList.contains(keId)){
+                    if(keChengList.contains(keId)){
                         TestUser testUser = new TestUser();
                         testUser.setZhangId(ZhangId);
                         testUser.setUid(user.getUid());
@@ -166,6 +206,16 @@ public class QuestionController {
     public String submitAnswer() {
         try {
             return questionService.submitAnswer();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return e.getMessage();
+        }
+    }
+
+    @RequestMapping(value = "/listenClazz", method = RequestMethod.GET)
+    public String listenClazz() {
+        try {
+            return clazzService.listenClazz();
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return e.getMessage();

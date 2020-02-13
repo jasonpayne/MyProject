@@ -1,37 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.xinchao.dao.mapper.TestUserMapper">
+<mapper namespace="com.xinchao.dao.mapper.ClazzUserMapper">
 
-    <resultMap id="ResultMap" type="com.xinchao.dao.entity.TestUser" >
+    <resultMap id="ResultMap" type="com.xinchao.dao.entity.ClazzUser" >
         <result column="id" property="id" />
-        <result column="zhang_id" property="zhangId" />
+        <result column="clzss_id" property="clzssId" />
         <result column="uid" property="uid" />
-        <result column="quests" property="quests" />
         <result column="score" property="score" />
         <result column="is_complete" property="isComplete" />
-        <result column="is_submit" property="isSubmit" />
     </resultMap>
 
     <sql id="Base_Column_List">
                 id,
-                zhang_id,
+                clzss_id,
                 uid,
-                quests,
                 score,
-                is_complete,
-                is_submit
+                is_complete
     </sql>
 
     <sql id="whereSQL">
-        <if test="zhangId != null and zhangId != '' ">
-            AND zhang_id = #{zhangId}
+        <if test="clzssId != null and clzssId != '' ">
+            AND clzss_id = #{clzssId}
         </if>
         <if test="uid != null and uid != '' ">
             AND uid = #{uid}
-        </if>
-        <if test="quests != null ">
-            AND quests = #{quests}
         </if>
         <if test="score != null ">
             AND score = #{score}
@@ -39,83 +32,66 @@
         <if test="isComplete != null ">
             AND is_complete = #{isComplete}
         </if>
-        <if test="isSubmit != null ">
-            AND is_submit = #{isSubmit}
-        </if>
     </sql>
 
     <select id="selectForList" resultMap="ResultMap">
         SELECT <include refid="Base_Column_List" />
-        FROM test_user
+        FROM clazz_user
         WHERE 1 = 1
         <include refid="whereSQL" />
     </select>
 
-    <select id="selectOne" resultMap="ResultMap" parameterType="com.xinchao.dao.entity.TestUser">
+    <select id="selectOne" resultMap="ResultMap" parameterType="com.xinchao.dao.entity.ClazzUser">
         SELECT <include refid="Base_Column_List" />
-        FROM test_user
+        FROM clazz_user
         WHERE id = #{id}
     </select>
 
-    <insert id="insert"  parameterType="com.xinchao.dao.entity.TestUser">
-        REPLACE INTO test_user
+    <insert id="insert" parameterType="com.xinchao.dao.entity.ClazzUser">
+        REPLACE INTO clazz_user
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test ='null != zhangId'>
-                zhang_id,
+            <if test ='null != clzssId'>
+                clzss_id,
             </if>
             <if test ='null != uid'>
                 uid,
-            </if>
-            <if test ='null != quests'>
-                quests,
             </if>
             <if test ='null != score'>
                 score,
             </if>
             <if test ='null != isComplete'>
-                is_complete,
-            </if>
-            <if test ='null != isSubmit'>
-                is_submit
+                is_complete
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test ='null != zhangId'>
-                #{zhangId},
+            <if test ='null != clzssId'>
+                #{clzssId},
             </if>
             <if test ='null != uid'>
                 #{uid},
-            </if>
-            <if test ='null != quests'>
-                #{quests},
             </if>
             <if test ='null != score'>
                 #{score},
             </if>
             <if test ='null != isComplete'>
-                #{isComplete},
-            </if>
-            <if test ='null != isSubmit'>
-                #{isSubmit}
+                #{isComplete}
             </if>
         </trim>
     </insert>
 
-    <update id="update" parameterType="com.xinchao.dao.entity.TestUser">
-        UPDATE test_user
+    <update id="update" parameterType="com.xinchao.dao.entity.ClazzUser">
+        UPDATE clazz_user
         <set>
-            <if test ='null != zhangId'>zhang_id = #{zhangId},</if>
+            <if test ='null != clzssId'>clzss_id = #{clzssId},</if>
             <if test ='null != uid'>uid = #{uid},</if>
-            <if test ='null != quests'>quests = #{quests},</if>
             <if test ='null != score'>score = #{score},</if>
-            <if test ='null != isComplete'>is_complete = #{isComplete},</if>
-            <if test ='null != isSubmit'>is_submit = #{isSubmit}</if>
+            <if test ='null != isComplete'>is_complete = #{isComplete}</if>
         </set>
         WHERE id = #{id}
     </update>
 
     <delete id="delete" >
-        DELETE FROM test_user
+        DELETE FROM clazz_user
         WHERE id = #{id}
     </delete>
 

@@ -100,16 +100,16 @@
                 #{answers},
             </if>
             <if test ='null != answerSize'>
-                #{answer_size},
+                #{answerSize},
             </if>
             <if test ='null != isCorrect'>
                 #{isCorrect},
             </if>
             <if test ='null != questName'>
-                #{quest_name},
+                #{questName},
             </if>
             <if test ='null != questName'>
-                #{answers_name}
+                #{answersName}
             </if>
         </trim>
     </insert>

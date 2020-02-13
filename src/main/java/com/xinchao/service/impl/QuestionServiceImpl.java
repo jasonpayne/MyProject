@@ -338,6 +338,7 @@ public class QuestionServiceImpl implements QuestionService {
                                             noAnswers = noAnswers + 1;
                                         }else{
                                             answerNew.setAnswers(DanXuan.getNote(DanXuan.getCode(answerNew.getAnswers())+1));
+                                            answerNew.setIsCorrect(0);
                                         }
                                     }
                                     // 多选
@@ -351,6 +352,7 @@ public class QuestionServiceImpl implements QuestionService {
                                                 noAnswers = noAnswers + 2;
                                             }else{
                                                 answerNew.setAnswers(DuoXuan.getNote(DuoXuan.getCode(answerNew.getAnswers())+1));
+                                                answerNew.setIsCorrect(0);
                                             }
                                         }
                                     }
@@ -361,6 +363,7 @@ public class QuestionServiceImpl implements QuestionService {
                                             noAnswers = noAnswers + 1;
                                         }else{
                                             answerNew.setAnswers(PanDuan.getNote(PanDuan.getCode(answerNew.getAnswers())+1));
+                                            answerNew.setIsCorrect(0);
                                         }
                                     }
                                     answerMapper.update(answerNew);

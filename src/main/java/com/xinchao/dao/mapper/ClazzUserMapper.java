@@ -1,6 +1,6 @@
 package com.xinchao.dao.mapper;
 
-import com.xinchao.dao.entity.TestUser;
+import com.xinchao.dao.entity.ClazzUser;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
@@ -13,34 +13,34 @@ import java.util.List;
  */
 @Mapper
 @Repository
-public interface TestUserMapper {
+public interface ClazzUserMapper {
 
     /**
      * [查询] 根据主键 id 查询
      * @author xinchao.pan
      * @date 2020/02/08
      **/
-    TestUser selectOne(TestUser testUser);
+    ClazzUser selectOne(ClazzUser clazzUser);
 
     /**
      * [查询] 分页查询
      * @author xinchao.pan
      * @date 2020/02/08
      **/
-    List<TestUser> selectForList(TestUser testUser);
+    List<ClazzUser> selectForList(ClazzUser clazzUser);
     /**
      * [新增]
      * @author xinchao.pan
      * @date 2020/02/08
      **/
-    int insert(TestUser testUser);
+    int insert(ClazzUser clazzUser);
 
     /**
      * [更新]
      * @author xinchao.pan
      * @date 2020/02/08
      **/
-    int update(TestUser testUser);
+    int update(ClazzUser clazzUser);
 
     /**
      * [刪除]
@@ -48,4 +48,5 @@ public interface TestUserMapper {
      * @date 2020/02/08
      **/
     int delete(int id);
+
 }
