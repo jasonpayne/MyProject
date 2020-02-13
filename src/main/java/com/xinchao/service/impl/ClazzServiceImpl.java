@@ -7,8 +7,10 @@ import com.xinchao.dao.mapper.UserMapper;
 import com.xinchao.service.ClazzService;
 import com.xinchao.service.QuestionService;
 import com.xinchao.utils.HttpClient;
+import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -61,15 +63,15 @@ public class ClazzServiceImpl implements ClazzService {
                     clazzUserMapper.update(model);
                     continue;
                 }else{
-                    String score = text.substring(text.indexOf("共10分，你已取得")+"共10分，你已取得".length(), 1);
+                    String score = text.substring(text.indexOf("共10分，你已取得")+"共10分，你已取得".length(), text.indexOf("共10分，你已取得")+"共10分，你已取得".length()+1);
                     model.setScore(Integer.valueOf(score));
                     clazzUserMapper.update(model);
                     // 点进去做任务
-                    String clazzUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/kelista?ptopid="+ptopId+"&keid="+ model.getClzssId()+"&fun2=1";
+                    String clazzUrl = "http://171.8.225.133/vls2s/vls3isapi.dll/kelista?ptopid="+ptopId+"&cid="+ model.getClzssId()+"&fun2=1";
                     String clazzHtml = HttpClient.sendGet(clazzUrl, null);
                     if(clazzHtml.contains("你的登录信息已经失效")){
                         ptopId = questionService.login(nowUser);
-                        clazzUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/kelista?ptopid="+ptopId+"&keid="+ model.getClzssId()+"&fun2=1";
+                        clazzUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/kelista?ptopid="+ptopId+"&cid="+ model.getClzssId()+"&fun2=1";
                         clazzHtml = HttpClient.sendGet(clazzUrl, null);
                     }
                     if(clazzHtml.contains("对不起，本系统目前尚未提供此功能")){
@@ -79,11 +81,19 @@ public class ClazzServiceImpl implements ClazzService {
                         continue;
                     }else{
                         Document documentDetail = Jsoup.parse(clazzHtml);
-                        Elements elements = documentDetail.select("a[href]").select("font[color=#0000FF]");
+//                        Elements elements = documentDetail.select("a[href]").select("font[color=#0000FF]");
+                        Elements elements = documentDetail.select("a");
+                        for (Element element : elements) {
+                            if(null != element && element.toString().contains("#0000FF")) {
+                                System.out.println("打开听课:"+element.attr("href"));
+                                HttpClient.sendGet(element.attr("href"), null);
+                                break;
+                            }
+                        }
                     }
                 }
             }
-            return null;
+            return "听课中。。。。。。";
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return e.getMessage();

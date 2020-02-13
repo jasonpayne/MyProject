@@ -118,11 +118,11 @@ public class ZhengZhouController {
                     }
                     Document document = Jsoup.parse(KeChengDetailHtml);
                     String text = document.body().text().trim();
-                    if(!text.contains("共10分，你已取得10分") || !text.contains("因库中无有效课件，你直接取得10分")){
+                    if(!text.contains("共10分，你已取得10分") && !text.contains("因库中无有效课件，你直接取得10分")){
                         ClazzUser clazzUser = new ClazzUser();
                         clazzUser.setClzssId(keId);
                         clazzUser.setUid(user.getUid());
-                        String score = text.substring(text.indexOf("共10分，你已取得")+"共10分，你已取得".length(), 1);
+                        String score = text.substring(text.indexOf("共10分，你已取得")+"共10分，你已取得".length(), text.indexOf("共10分，你已取得")+"共10分，你已取得".length()+1);
                         clazzUser.setScore(Integer.valueOf(score));
                         clazzUser.setIsComplete(0);
                         clazzUserMapper.insert(clazzUser);
