@@ -62,7 +62,7 @@ public class ZhengZhouController {
             }else{
                 User loginInfo = userMapper.login(user);
                 if(null != loginInfo){
-                    if(loginInfo.getIsClass() == 0 || loginInfo.getIsClass()==0){
+                    if(loginInfo.getIsTest() == 0 || loginInfo.getIsClazz()==0){
                         user.setPtopId(ptopId);
                         userMapper.update(user);
 //                        register0(user);
@@ -73,7 +73,7 @@ public class ZhengZhouController {
                 }else{
                     // 插入系统，并且初始化数据
                     user.setPtopId(ptopId);
-                    user.setIsClass(0);
+                    user.setIsClazz(0);
                     user.setIsTest(0);
                     userMapper.insert(user);
                     return "刚刚注册成功，正在操作，请稍等登陆查看。"+register0(user);

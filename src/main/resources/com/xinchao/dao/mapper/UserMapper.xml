@@ -8,7 +8,7 @@
         <result column="pw" property="pw" />
         <result column="ptop_id" property="ptopId" />
         <result column="ru_id" property="ruId" />
-        <result column="is_class" property="isClass" />
+        <result column="is_clazz" property="isClazz" />
         <result column="is_test" property="isTest" />
     </resultMap>
 
@@ -17,7 +17,7 @@
                 pw,
                 ptop_id,
                 ru_id,
-                is_class,
+                is_clazz,
                 is_test
     </sql>
 
@@ -34,8 +34,8 @@
         <if test="ruId != null and ruId != '' ">
             AND ru_id = #{ruId}
         </if>
-        <if test="isClass != null ">
-            AND is_class = #{isClass}
+        <if test="isClazz != null ">
+            AND is_clazz = #{isClazz}
         </if>
         <if test="isTest != null ">
             AND is_test = #{isTest}
@@ -76,8 +76,8 @@
             <if test ='null != ruId'>
                 ru_id,
             </if>
-            <if test ='null != isClass'>
-                is_class,
+            <if test ='null != isClazz'>
+                is_clazz,
             </if>
             <if test ='null != isTest'>
                 is_test,
@@ -96,8 +96,8 @@
             <if test ='null != ruId'>
                 #{ruId},
             </if>
-            <if test ='null != isClass'>
-                #{isClass},
+            <if test ='null != isClazz'>
+                #{isClazz},
             </if>
             <if test ='null != isTest'>
                 #{isTest},
@@ -110,7 +110,7 @@
         <set>
             <if test ='null != ptopId'>ptop_id = #{ptopId},</if>
             <if test ='null != ruId'>ru_id = #{ruId},</if>
-            <if test ='null != isClass'>is_class = #{isClass},</if>
+            <if test ='null != isClazz'>is_clazz = #{isClazz},</if>
             <if test ='null != isTest'>is_test = #{isTest},</if>
         </set>
         WHERE uid = #{uid} AND pw = #{pw}

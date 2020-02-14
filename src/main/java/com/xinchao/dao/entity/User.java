@@ -34,7 +34,7 @@ public class User {
     /**
      * 是否上课完成。0:未完成；1:已完成
      */
-    private Integer isClass;
+    private Integer isClazz;
 
     /**
      * 是否测试完成。0:未完成；1:已完成
