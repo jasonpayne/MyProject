@@ -9,6 +9,7 @@
         <result column="uid" property="uid" />
         <result column="quests" property="quests" />
         <result column="score" property="score" />
+        <result column="times" property="times" />
         <result column="is_complete" property="isComplete" />
         <result column="is_submit" property="isSubmit" />
     </resultMap>
@@ -19,6 +20,7 @@
                 uid,
                 quests,
                 score,
+                times,
                 is_complete,
                 is_submit
     </sql>
@@ -36,6 +38,9 @@
         <if test="score != null ">
             AND score = #{score}
         </if>
+        <if test="times != null ">
+            AND times = #{times}
+        </if>
         <if test="isComplete != null ">
             AND is_complete = #{isComplete}
         </if>
@@ -49,6 +54,7 @@
         FROM test_user
         WHERE 1 = 1
         <include refid="whereSQL" />
+        limit 900
     </select>
 
     <select id="selectOne" resultMap="ResultMap" parameterType="com.xinchao.dao.entity.TestUser">
@@ -72,6 +78,9 @@
             <if test ='null != score'>
                 score,
             </if>
+            <if test ='null != times'>
+                times,
+            </if>
             <if test ='null != isComplete'>
                 is_complete,
             </if>
@@ -92,6 +101,9 @@
             <if test ='null != score'>
                 #{score},
             </if>
+            <if test ='null != times'>
+                #{times},
+            </if>
             <if test ='null != isComplete'>
                 #{isComplete},
             </if>
@@ -108,6 +120,7 @@
             <if test ='null != uid'>uid = #{uid},</if>
             <if test ='null != quests'>quests = #{quests},</if>
             <if test ='null != score'>score = #{score},</if>
+            <if test ='null != times'>times = #{times},</if>
             <if test ='null != isComplete'>is_complete = #{isComplete},</if>
             <if test ='null != isSubmit'>is_submit = #{isSubmit}</if>
         </set>

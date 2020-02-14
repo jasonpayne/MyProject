@@ -55,8 +55,6 @@ public class ClazzServiceImpl implements ClazzService {
                 }
                 Document document = Jsoup.parse(KeChengDetailHtml);
                 String text = document.body().text().trim();
-
-                System.out.println("aa");
                 if(text.contains("共10分，你已取得10分")){
                     model.setScore(10);
                     model.setIsComplete(1);

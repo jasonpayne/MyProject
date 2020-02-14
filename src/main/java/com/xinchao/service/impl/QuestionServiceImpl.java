@@ -13,8 +13,13 @@ import com.xinchao.model.MajorTest;
 import com.xinchao.service.QuestionService;
 import com.xinchao.utils.HttpClient;
 import org.apache.commons.lang.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -41,7 +46,7 @@ public class QuestionServiceImpl implements QuestionService {
 
     private static final String denglu = "http://202.196.64.120/vls2s/zzjlogin.dll/login";
 
-//    private static final String kecheng = "http://123.15.57.74/vls5s/vls3isapi2.dll/";
+    //    private static final String kecheng = "http://123.15.57.74/vls5s/vls3isapi2.dll/";
     private static final String kecheng = "http://171.8.225.133/vls5s/vls3isapi2.dll/";
 
     /**
@@ -156,6 +161,7 @@ public class QuestionServiceImpl implements QuestionService {
             if(null == testList ||testList.size() == 0){
                 return "没有打开的题目";
             }
+
             for (TestUser model : testList) {
                 User user = new User();
                 user.setUid(model.getUid());
@@ -168,6 +174,14 @@ public class QuestionServiceImpl implements QuestionService {
                     testDetailUrl = "http://171.8.225.138/vls2s/vls3isapi.dll/testonce?ptopid=" + ptopId + "&zhang=" + model.getZhangId();
                     testDetailHtml = HttpClient.sendGet(testDetailUrl, null);
                 }
+                // 题目
+                Elements questElements = new Elements();
+                // 答案
+                Elements answerElements = new Elements();
+                Document document = Jsoup.parse(testDetailHtml);
+                questElements = document.select("td[width=100%]").select("td[bgcolor=#E6E6DF]").select("td[height=20]").
+                        select("td:not(td[width=25%])").select("td:not(td[width=40%])").select("td:not(td[width=20%])");
+                answerElements = document.select("table[width=80%]").select("table:not(table[width=100%])").select("table:not(table[width=750])");
 
                 Matcher testDetailMatcher = compile("<input" + "[^<>]*?\\s" + "name=['\"]?(.*?)['\"]?(\\s.*?)?>").matcher(testDetailHtml);
                 // 本章当前需要完成的题目
@@ -186,6 +200,7 @@ public class QuestionServiceImpl implements QuestionService {
                     }
                 }
                 // 初始化答案
+                int index = 0;
                 for (String str : questionSet) {
                     Answer quest = answerMapper.selectOne(str);
                     if(null == quest){
@@ -202,10 +217,13 @@ public class QuestionServiceImpl implements QuestionService {
                         else if(str.contains(model.getZhangId()+3)){
                             isNotAnswer.setAnswers("Y");
                         }
+                        isNotAnswer.setQuestName(questElements.get(index).text());
+                        isNotAnswer.setAnswerName(answerElements.get(index).text());
                         isNotAnswer.setIsCorrect(-1);
                         // 如果不存在初始答案则要初始化
                         answerMapper.insert(isNotAnswer);
                     }
+                    index ++;
                 }
                 StringBuilder sb = new StringBuilder ();
                 for (String str : questionSet){

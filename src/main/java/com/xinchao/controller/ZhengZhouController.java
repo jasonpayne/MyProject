@@ -84,14 +84,14 @@ public class ZhengZhouController {
         }
     }
 
-    /*@RequestMapping(value = "/aaa", method = RequestMethod.GET)
+    @RequestMapping(value = "/aaa", method = RequestMethod.GET)
     public void aaa() {
         List<User> select = userMapper.selectForList(new User());
         for(User user : select){
             String ptopId = questionService.login(user);
             register0(user);
         }
-    }*/
+    }
 
     public String register0(User user) {
         try {
@@ -107,9 +107,9 @@ public class ZhengZhouController {
             System.out.println("===========================本学期所有需要学习课程==========================");
             List<String> keChengList = new ArrayList<String>();
             Pattern pattern = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
-            if(allclass.contains("你应已修习")){
+            /*if(allclass.contains("你应已修习")){
                 allclass = allclass.substring(0,allclass.indexOf("你应已修习"));
-            }
+            }*/
             Matcher matcher = pattern.matcher(allclass);
             while (matcher.find()) {
                 String r = matcher.group(1).replace("\"", "");
@@ -127,7 +127,8 @@ public class ZhengZhouController {
                         }
                         Document document = Jsoup.parse(KeChengDetailHtml);
                         String text = document.body().text().trim();
-                        if(!text.contains("共10分，你已取得10分") && !text.contains("因库中无有效课件，你直接取得10分")&& !text.contains("因库中无有效课件，你直接取得10分")){
+                        if(!text.contains("共10分，你已取得10分") && !text.contains("因库中无有效课件，你直接取得10分")
+                                && !text.contains("因库中无有效课件，你直接取得10分") && !text.contains("点播课件不再计分")){
                             ClazzUser clazzUser = new ClazzUser();
                             clazzUser.setClzssId(keId);
                             clazzUser.setUid(user.getUid());

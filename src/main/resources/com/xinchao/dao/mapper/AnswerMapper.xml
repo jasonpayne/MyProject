@@ -108,7 +108,7 @@
             <if test ='null != questName'>
                 #{questName},
             </if>
-            <if test ='null != questName'>
+            <if test ='null != answersName'>
                 #{answersName}
             </if>
         </trim>

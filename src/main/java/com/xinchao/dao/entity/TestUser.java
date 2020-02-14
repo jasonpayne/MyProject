@@ -37,6 +37,11 @@ public class TestUser {
     private Integer score;
 
     /**
+     * 做题次数
+     */
+    private Integer times;
+
+    /**
      * 是否完成; 0:表示未完成;1:表示完成;2:答案太多，无法完成
      */
     private Integer isComplete;

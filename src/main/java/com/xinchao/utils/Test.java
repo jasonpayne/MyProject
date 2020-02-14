@@ -2,6 +2,7 @@ package com.xinchao.utils;
 
 import com.xinchao.dao.entity.User;
 
+import javax.lang.model.util.Elements;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -19,6 +20,7 @@ public class Test {
         }
         */
         List<String> result = new ArrayList<String>();
+//        Elements elements = documentDetail.select("a[href]").select("font[color=#0000FF]");
 //        String source = "<a title=中国体育报 href=''>aaa</a><a title='北京日报' href=''>bbb</a>";
 //        String source = "<input type=\"radio\" value=\"B\" name=\"666101071001\">";
         String source = "<td width='43' height='20'>20</td>";

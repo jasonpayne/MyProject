@@ -8,7 +8,7 @@ eureka:
     lease-renewal-interval-in-seconds: 60
     lease-expiration-duration-in-seconds: 60
 server:
-  port: 19014
+  port: 8080
   use-forward-headers: true
 
 logging:
