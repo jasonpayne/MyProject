@@ -51,6 +51,6 @@ public class Answer {
     /**
      * '答案内容'
      */
-    private String answerName;
+    private String answersName;
 
 }

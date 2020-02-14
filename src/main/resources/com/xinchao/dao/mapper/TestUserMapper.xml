@@ -54,7 +54,7 @@
         FROM test_user
         WHERE 1 = 1
         <include refid="whereSQL" />
-        limit 900
+--         limit 900
     </select>
 
     <select id="selectOne" resultMap="ResultMap" parameterType="com.xinchao.dao.entity.TestUser">

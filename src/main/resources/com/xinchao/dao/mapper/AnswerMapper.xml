@@ -12,7 +12,7 @@
         <result column="answer_size" property="answerSize" />
         <result column="is_correct" property="isCorrect" />
         <result column="quest_name" property="questName" />
-        <result column="answers_name" property="answerName" />
+        <result column="answers_name" property="answersName" />
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -128,7 +128,9 @@
             <if test ='null != keId'>ke_id = #{keId},</if>
             <if test ='null != answers'>answers = #{answers},</if>
             <if test ='null != answerSize'>answer_size = #{answerSize},</if>
-            <if test ='null != isCorrect'>is_correct = #{isCorrect}</if>
+            <if test ='null != isCorrect'>is_correct = #{isCorrect},</if>
+            <if test ='null != questName'>quest_name = #{questName},</if>
+            <if test ='null != answersName'>answers_name = #{answersName}</if>
         </set>
         WHERE quest_id = #{questId}
     </update>

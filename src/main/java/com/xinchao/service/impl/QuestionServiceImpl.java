@@ -181,7 +181,18 @@ public class QuestionServiceImpl implements QuestionService {
                 Document document = Jsoup.parse(testDetailHtml);
                 questElements = document.select("td[width=100%]").select("td[bgcolor=#E6E6DF]").select("td[height=20]").
                         select("td:not(td[width=25%])").select("td:not(td[width=40%])").select("td:not(td[width=20%])");
+                List<String> questNameList = new ArrayList<>();
+                for(Element element : questElements){
+                    String str = element.text();
+                    if(!str.contains("本题空白")) {
+                        questNameList.add(str);
+                    }
+                }
+                List<String> answersNameList = new ArrayList<>();
                 answerElements = document.select("table[width=80%]").select("table:not(table[width=100%])").select("table:not(table[width=750])");
+                for(Element element : answerElements){
+                    answersNameList.add(element.text());
+                }
 
                 Matcher testDetailMatcher = compile("<input" + "[^<>]*?\\s" + "name=['\"]?(.*?)['\"]?(\\s.*?)?>").matcher(testDetailHtml);
                 // 本章当前需要完成的题目
@@ -217,14 +228,15 @@ public class QuestionServiceImpl implements QuestionService {
                         else if(str.contains(model.getZhangId()+3)){
                             isNotAnswer.setAnswers("Y");
                         }
-                        isNotAnswer.setQuestName(questElements.get(index).text());
-                        isNotAnswer.setAnswerName(answerElements.get(index).text());
+                        isNotAnswer.setQuestName(questNameList.get(index));
+                        isNotAnswer.setAnswersName(answersNameList.get(index));
                         isNotAnswer.setIsCorrect(-1);
                         // 如果不存在初始答案则要初始化
                         answerMapper.insert(isNotAnswer);
                     }
                     index ++;
                 }
+
                 StringBuilder sb = new StringBuilder ();
                 for (String str : questionSet){
                     sb.append(str+",");
