@@ -345,7 +345,7 @@ public class ZhengZhouController {
                             System.out.println(user.getUid() + "==="+  user.getPw() + "==="+ keId+"========"+score);
                             clazzUser.setScore(Integer.valueOf(score));
                             clazzUser.setIsComplete(0);
-                            clazzUserMapper.insert(clazzUser);
+                            clazzUserMapper.insertNotExist(clazzUser);
                         }
                     }
                 }
@@ -393,7 +393,7 @@ public class ZhengZhouController {
                         // TODO
                         testUser.setIsComplete(0);
                         testUser.setIsSubmit(0);
-                        testUserMapper.insert(testUser);
+                        testUserMapper.insertNotExist(testUser);
                         testList.add(r);
                     }
                 }

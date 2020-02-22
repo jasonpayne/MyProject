@@ -88,7 +88,7 @@
             <if test ='null != questName'>
                 quest_name,
             </if>
-            <if test ='null != answerName'>
+            <if test ='null != answersName'>
                 answers_name
             </if>
         </trim>

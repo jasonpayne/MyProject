@@ -63,6 +63,12 @@
         WHERE id = #{id}
     </select>
 
+    <insert id="insertNotExist"  parameterType="com.xinchao.dao.entity.TestUser">
+        insert into test_user (zhang_id, uid, is_complete, is_submit)
+        SELECT #{zhangId}, #{uid}, #{isComplete}, #{isSubmit} FROM DUAL
+        WHERE NOT EXISTS (SELECT id FROM test_user WHERE zhang_id = #{zhangId} AND uid = #{uid})
+    </insert>
+
     <insert id="insert"  parameterType="com.xinchao.dao.entity.TestUser">
         REPLACE INTO test_user
         <trim prefix="(" suffix=")" suffixOverrides=",">

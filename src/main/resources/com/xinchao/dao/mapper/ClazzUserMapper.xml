@@ -47,6 +47,12 @@
         WHERE id = #{id}
     </select>
 
+    <insert id="insertNotExist"  parameterType="com.xinchao.dao.entity.ClazzUser">
+        insert into clazz_user (clzss_id, uid, score, is_complete)
+        SELECT #{clzssId}, #{uid}, #{score}, #{isComplete} FROM DUAL
+        WHERE NOT EXISTS (SELECT id FROM clazz_user WHERE clzss_id = #{clzssId} AND uid = #{uid})
+    </insert>
+
     <insert id="insert" parameterType="com.xinchao.dao.entity.ClazzUser">
         REPLACE INTO clazz_user
         <trim prefix="(" suffix=")" suffixOverrides=",">

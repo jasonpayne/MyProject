@@ -28,6 +28,14 @@ public interface ClazzUserMapper {
      * @date 2020/02/08
      **/
     List<ClazzUser> selectForList(ClazzUser clazzUser);
+
+    /**
+     * [不存在就新增]
+     * @author xinchao.pan
+     * @date 2020/02/08
+     **/
+    int insertNotExist(ClazzUser clazzUser);
+
     /**
      * [新增]
      * @author xinchao.pan

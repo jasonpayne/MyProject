@@ -28,6 +28,14 @@ public interface TestUserMapper {
      * @date 2020/02/08
      **/
     List<TestUser> selectForList(TestUser testUser);
+
+    /**
+     * [不存在就新增]
+     * @author xinchao.pan
+     * @date 2020/02/08
+     **/
+    int insertNotExist(TestUser testUser);
+
     /**
      * [新增]
      * @author xinchao.pan

@@ -1,6 +1,8 @@
 package com.xinchao.utils;
 
-import org.springframework.stereotype.Service;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -36,13 +38,8 @@ public class HttpClient {
             connection.setConnectTimeout(30000);
             connection.setReadTimeout(30000);
             connection.connect();
-            // 定义 BufferedReader输入流来读取URL的响应
+            // 定义 BufferedReader输入流来读取URL的响应charset
             InputStream inputStream = connection.getInputStream();
-            String charset = "UTF-8";
-            Matcher matcher = Pattern.compile("charset=\\S*").matcher(connection.getContentType());
-            if (matcher.find()) {
-                charset = matcher.group().replace("charset=", "");
-            }
             byte[] buffer = new byte[1024];
             int len = 0;
             bos = new ByteArrayOutputStream();
@@ -50,7 +47,7 @@ public class HttpClient {
                 bos.write(buffer, 0, len);
             }
             byte[] getData = bos.toByteArray();;     //获得网站的二进制数据
-            result = new String(getData, charset);
+            result = new String(getData, getCharset(urlNameString));
         } catch (Exception e) {
             System.out.println("发送GET请求出现异常！" + e);
             return null;
@@ -66,6 +63,21 @@ public class HttpClient {
             }
         }
         return result;
+    }
+
+
+    /**
+     * 获得字符集
+     */
+    public String getCharset(String siteUrl) throws Exception{
+        URL url = new URL(siteUrl);
+        Document doc = Jsoup.parse(url, 6*1000);
+        Elements elements = doc.select("meta[http-equiv=Content-Type]");
+        Matcher matcher = Pattern.compile("(?<=charset=)(.+)(?=\")").matcher(elements.get(0).toString());
+        if (matcher.find()){
+            return matcher.group();
+        }
+        return "gb2312";
     }
 
     /**
