@@ -53,7 +53,7 @@ public class HttpClient {
             result = new String(getData, charset);
         } catch (Exception e) {
             System.out.println("发送GET请求出现异常！" + e);
-            e.printStackTrace();
+            return null;
         }
         // 使用finally块来关闭输入流
         finally {

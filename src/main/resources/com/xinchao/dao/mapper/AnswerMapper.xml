@@ -43,6 +43,12 @@
         <if test="isCorrect != null ">
             AND is_correct = #{isCorrect}
         </if>
+        <if test="questName != null and questName != '' ">
+            AND quest_name like concat('%', #{questName}, '%')
+        </if>
+        <if test="answersName != null and answersName != '' ">
+            AND answers_name = #{answersName}
+        </if>
     </sql>
 
     <select id="selectForList" resultMap="ResultMap">

@@ -2,14 +2,9 @@ package com.xinchao.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.xinchao.dao.entity.Answer;
-import com.xinchao.dao.entity.ClazzUser;
-import com.xinchao.dao.entity.TestUser;
-import com.xinchao.dao.entity.User;
-import com.xinchao.dao.mapper.AnswerMapper;
-import com.xinchao.dao.mapper.ClazzUserMapper;
-import com.xinchao.dao.mapper.TestUserMapper;
-import com.xinchao.dao.mapper.UserMapper;
+import com.xinchao.dao.entity.*;
+import com.xinchao.dao.mapper.*;
+import com.xinchao.enums.QuestionType;
 import com.xinchao.model.QuestAnswer;
 import com.xinchao.service.ClazzService;
 import com.xinchao.service.QuestionService;
@@ -55,6 +50,9 @@ public class ZhengZhouController {
     @Autowired
     ClazzService clazzService;
 
+    @Autowired
+    ExamineMapper examineMapper;
+
     HttpClient HttpClient = new HttpClient();
 
     @RequestMapping(value = "/register", method = RequestMethod.GET)
@@ -91,67 +89,218 @@ public class ZhengZhouController {
 
     @RequestMapping(value = "/mytest", method = RequestMethod.GET)
     public void mytest() {
-        List<User> select = userMapper.selectForList(new User());
-        for (User user : select) {
-            String ptopId = questionService.login(user);
+
+        try {
+            List<User> users = userMapper.selectForList(new User());
+            String ptopId = questionService.login(users.get(25));
+            String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid="+ptopId;
+            // 设置cookie
+            HttpClient.sendGetNoRedirects(cookieUrl, null);
+
+            System.out.println("------------------------------以下为需要测试功能代码---------------------------------");
+
+            Examine examineQuery = new Examine();
+            examineQuery.setIsReply(0);
+            examineQuery.setQuestType("base-1");
+            List<Examine> examines = examineMapper.selectForList(examineQuery);
+
+            Elements questElements = new Elements();
+            Elements answersElements = new Elements();
+            Elements answerElements = new Elements();
+            for(Examine model :examines){
+                String quest = "";
+                String answers = "";
+                String answer = "";
+                String examineDetailUrl = "http://222.22.63.178/student/getQuestion?isSimulate=1&qId="+ model.getQuestId();
+                System.out.println(examineDetailUrl);
+                String examineDetailHtml = HttpClient.sendGet(examineDetailUrl, null);
+                if(StringUtils.isBlank(examineDetailHtml)){
+                    continue;
+                }
+                Document document = Jsoup.parse(examineDetailHtml);
+                if(model.getQuestType().equals(QuestionType.JST.getCode())){ // 计算题
+                    // 问题
+                    questElements = document.select("h4");
+                    if(null != questElements){
+                        if(questElements.get(0).html().contains("img")){
+                            // 有图片
+                            Elements questImgElements = questElements.select("img");
+                            for(Element  element : questImgElements){
+                                String src = "http://222.22.63.178" + element.attr("src").replace("\"","");
+                                quest = quest + src + ";";
+                            }
+                        }
+                        quest = quest + questElements.get(0).text();
+                    }
+                    // 答案
+                    String answerJsoup ="id=see-answer_"+model.getQuestId();
+                    answerElements = document.select("div["+answerJsoup+"]");
+                    if(null != answerElements){
+                        if(answerElements.get(0).html().contains("img")){
+                            // 有图片
+                            answerElements = answerElements.select("img");
+                            for(Element  element : answerElements){
+                                String src = "http://222.22.63.178"+element.attr("src").replace("\"","");
+                                answer = answer + src + ";";
+                            }
+                        }
+                        answer = answer + answerElements.get(0).text();
+                    }
+
+                }else if(model.getQuestType().equals(QuestionType.LST.getCode())){ // 论述题
+
+                }else if(model.getQuestType().equals(QuestionType.XZT.getCode())){ // 写作题
+
+                }else if(model.getQuestType().equals(QuestionType.SJT.getCode())){ // 设计题
+
+                }else if(model.getQuestType().equals(QuestionType.YWT.getCode())){ // 业务题
+
+                }else if(model.getQuestType().equals(QuestionType.ZCFY.getCode())){ // 字词翻译
+
+                }else if(model.getQuestType().equals(QuestionType.HTT.getCode())){ // 绘图题"
+
+                }else if(model.getQuestType().equals(QuestionType.BCT.getCode())){ // 编程题
+
+                }else if(model.getQuestType().equals(QuestionType.JCT.getCode())){ // 纠错题
+
+                }else if(model.getQuestType().equals(QuestionType.JDT.getCode())){ // 简答题
+
+                }else if(model.getQuestType().equals(QuestionType.MCJS.getCode())){ // 名词解释
+
+                }else if(model.getQuestType().equals(QuestionType.DYFY.getCode())){ // 短语翻译
+
+                }else if(model.getQuestType().equals(QuestionType.JZFY.getCode())){ // 句子翻译
+
+                }else if(model.getQuestType().equals(QuestionType.DLFX.getCode())){ // 段落翻译
+
+                }else if(model.getQuestType().equals(QuestionType.DANXT.getCode())){ // 单选题
+
+                }else if(model.getQuestType().equals(QuestionType.TL1.getCode())){ // 听力一
+
+                }else if(model.getQuestType().equals(QuestionType.YYDH.getCode())){ // 英语对话
+
+                }else if(model.getQuestType().equals(QuestionType.DUOXT.getCode())){ // 多选题
+
+                }else if(model.getQuestType().equals(QuestionType.WDT.getCode())){ // 问答题
+
+                }else if(model.getQuestType().equals(QuestionType.TKT.getCode())){ // 填空题
+
+                }else if(model.getQuestType().equals(QuestionType.TLTKT.getCode())){ // 听力填空题
+
+                }else if(model.getQuestType().equals(QuestionType.PDT.getCode())){ // 判断题
+
+                }else if(model.getQuestType().equals(QuestionType.ZHT.getCode())){ // 组合题
+
+                }else if(model.getQuestType().equals(QuestionType.ALFX.getCode())){ // 案例分析
+
+                }else if(model.getQuestType().equals(QuestionType.YDLJ.getCode())){ // 阅读理解
+
+                }else if(model.getQuestType().equals(QuestionType.SXXWXTK.getCode())){ // 十选项完形填空
+
+                }else if(model.getQuestType().equals(QuestionType.TL2.getCode())){ // 听力二
+
+                }else if(model.getQuestType().equals(QuestionType.WXXWXTK.getCode())){ // 五选项完型填空
+
+                }else if(model.getQuestType().equals(QuestionType.SCT.getCode())){ // 上传题
+
+                }else if(model.getQuestType().equals(QuestionType.SCTFZG.getCode())){ // 上传题(非主观)
+
+                }
+                if(StringUtils.isNotBlank(quest)){
+                    model.setQuestName(quest);
+                }
+                if(StringUtils.isNotBlank(answers)){
+                    model.setAnswersName(answers);
+                }
+                if(StringUtils.isNotBlank(answer)){
+                    if(!answer.contains("没有详解")){
+                        model.setSubjAnswer(answer);
+                        model.setIsReply(1);
+                    }else{
+                        model.setIsReply(2);
+                    }
+                }
+                examineMapper.update(model);
+            }
+            System.out.println("结束");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
+
     }
 
     @RequestMapping(value = "/getExamineAll", method = RequestMethod.GET)
-    public void getExamineAll() {
-        List<User> users = userMapper.selectForList(new User());
-        String ptopId = questionService.login(users.get(20));
-        String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid="+ptopId;
-        // 设置cookie
-        HttpClient.sendGetNoRedirects(cookieUrl, null);
-        /*String examinesUrl = "http://222.22.63.178/student/courseList";
-        String examinesHtml = HttpClient.sendGet(examinesUrl, null);*/
-        /*if(examinesHtml.contains("你的登录信息已经失效")){
+    public int getExamineAll() {
+        int succeed = 0;
+        try {
+            List<User> users = userMapper.selectForList(new User());
+            String ptopId = questionService.login(users.get(20));
+            String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid="+ptopId;
+            // 设置cookie
+            HttpClient.sendGetNoRedirects(cookieUrl, null);
+            /*String examinesUrl = "http://222.22.63.178/student/courseList";
+            String examinesHtml = HttpClient.sendGet(examinesUrl, null);*/
+            /*if(examinesHtml.contains("你的登录信息已经失效")){
 
-        }*/
+            }*/
 
-        /*Elements courseNameElements = new Elements();
-        Elements courseIdElements = new Elements();
-        Document examineDocument = Jsoup.parse(examinesHtml);
-        courseNameElements = examineDocument.select("p[class=text_center class-name float-l]");
-        courseIdElements = examineDocument.select("a[class=btn btn-sm btn-border]").select("a[onclick]");
-        List<String> courseNameList = new ArrayList<>();
-        for(Element element : courseNameElements){
-            String str = element.text();
-            System.out.println(str);
-            courseNameList.add(str);
-        }
-        List<String> courseList = new ArrayList<>();
-        for(Element element : courseIdElements){
-            String str = element.toString().substring(element.toString().indexOf("('")+"('".length(), element.toString().indexOf("')"));
-            String courseId = str.substring(str.length()-4);
-            System.out.println(courseId);
-            courseList.add(str);
-            String examineDetailUrl = "http://222.22.63.178/student/courseSelect?studentCourseId="+courseId;
-        }*/
+            /*Elements courseNameElements = new Elements();
+            Elements courseIdElements = new Elements();
+            Document examineDocument = Jsoup.parse(examinesHtml);
+            courseNameElements = examineDocument.select("p[class=text_center class-name float-l]");
+            courseIdElements = examineDocument.select("a[class=btn btn-sm btn-border]").select("a[onclick]");
+            List<String> courseNameList = new ArrayList<>();
+            for(Element element : courseNameElements){
+                String str = element.text();
+                System.out.println(str);
+                courseNameList.add(str);
+            }
+            List<String> courseList = new ArrayList<>();
+            for(Element element : courseIdElements){
+                String str = element.toString().substring(element.toString().indexOf("('")+"('".length(), element.toString().indexOf("')"));
+                String courseId = str.substring(str.length()-4);
+                System.out.println(courseId);
+                courseList.add(str);
+                String examineDetailUrl = "http://222.22.63.178/student/courseSelect?studentCourseId="+courseId;
+            }*/
 
-        String examineDetailUrl = "http://222.22.63.178/student/exercise";
-        String examineDetailHtml = HttpClient.sendGet(examineDetailUrl, null);
+            String examineDetailUrl = "http://222.22.63.178/student/exercise";
+            String examineDetailHtml = HttpClient.sendGet(examineDetailUrl, null);
 
-        Document document = Jsoup.parse(examineDetailHtml);
-        Elements examineElements = document.select("script[type=text/javascript]");
-        JSONArray jsonArray = new JSONArray();
-        for(Element element : examineElements){
-            if(element.html().contains("var questionsJson =")) {
-                String str = element.html().replace("\n", ""); //这里是为了解决 无法多行匹配的问题
-                Matcher matcher = Pattern.compile("var questionsJson = \\[(.*?)\\]").matcher(str);
-                if(matcher.find()){
-                    String questionsVar = matcher.group().replace("var questionsJson =", "");
-                    jsonArray = JSONObject.parseArray(questionsVar);
+            Document document = Jsoup.parse(examineDetailHtml);
+            Elements examineElements = document.select("script[type=text/javascript]");
+            JSONArray jsonArray = new JSONArray();
+            for(Element element : examineElements){
+                if(element.html().contains("var questionsJson =")) {
+                    String str = element.html().replace("\n", ""); //这里是为了解决 无法多行匹配的问题
+                    Matcher matcher = Pattern.compile("var questionsJson = \\[(.*?)\\]").matcher(str);
+                    if(matcher.find()){
+                        String questionsVar = matcher.group().replace("var questionsJson =", "");
+                        jsonArray = JSONObject.parseArray(questionsVar);
+                    }
                 }
             }
+            List<Examine> list = new ArrayList<>();
+            for(int i = 0 ; i < jsonArray.size() ; i++) {
+                Examine examine = new Examine();
+                examine.setQuestId(jsonArray.getJSONObject(i).getString("id"));
+                examine.setQuestType(jsonArray.getJSONObject(i).getString("type"));
+                examine.setIsReply(0);
+                list.add(examine);
+                if (list.size() > 10000) {
+                    succeed = succeed + examineMapper.insertBatch(list);
+                    list.clear();
+                }
+            }
+            if (list.size() > 0) {
+                succeed = succeed + examineMapper.insertBatch(list);
+            }
+            return succeed;
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
         }
-        for(int i = 0 ; i < jsonArray.size() ; i++) {
-            jsonArray.getJSONObject(i).get("id");
-            jsonArray.getJSONObject(i).get("type");
-        }
+        return succeed;
     }
-
 
     public String register0(User user) {
         try {
