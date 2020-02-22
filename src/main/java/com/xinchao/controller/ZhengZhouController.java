@@ -1,5 +1,8 @@
 package com.xinchao.controller;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.xinchao.dao.entity.Answer;
 import com.xinchao.dao.entity.ClazzUser;
 import com.xinchao.dao.entity.TestUser;
 import com.xinchao.dao.entity.User;
@@ -7,17 +10,17 @@ import com.xinchao.dao.mapper.AnswerMapper;
 import com.xinchao.dao.mapper.ClazzUserMapper;
 import com.xinchao.dao.mapper.TestUserMapper;
 import com.xinchao.dao.mapper.UserMapper;
+import com.xinchao.model.QuestAnswer;
 import com.xinchao.service.ClazzService;
 import com.xinchao.service.QuestionService;
 import com.xinchao.utils.HttpClient;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +55,8 @@ public class ZhengZhouController {
     @Autowired
     ClazzService clazzService;
 
+    HttpClient HttpClient = new HttpClient();
+
     @RequestMapping(value = "/register", method = RequestMethod.GET)
     public String register(@RequestBody User user) {
         try {
@@ -84,14 +89,69 @@ public class ZhengZhouController {
         }
     }
 
-    @RequestMapping(value = "/aaa", method = RequestMethod.GET)
-    public void aaa() {
+    @RequestMapping(value = "/mytest", method = RequestMethod.GET)
+    public void mytest() {
         List<User> select = userMapper.selectForList(new User());
-        for(User user : select){
+        for (User user : select) {
             String ptopId = questionService.login(user);
-            register0(user);
         }
     }
+
+    @RequestMapping(value = "/getExamineAll", method = RequestMethod.GET)
+    public void getExamineAll() {
+        List<User> users = userMapper.selectForList(new User());
+        String ptopId = questionService.login(users.get(20));
+        String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid="+ptopId;
+        // 设置cookie
+        HttpClient.sendGetNoRedirects(cookieUrl, null);
+        /*String examinesUrl = "http://222.22.63.178/student/courseList";
+        String examinesHtml = HttpClient.sendGet(examinesUrl, null);*/
+        /*if(examinesHtml.contains("你的登录信息已经失效")){
+
+        }*/
+
+        /*Elements courseNameElements = new Elements();
+        Elements courseIdElements = new Elements();
+        Document examineDocument = Jsoup.parse(examinesHtml);
+        courseNameElements = examineDocument.select("p[class=text_center class-name float-l]");
+        courseIdElements = examineDocument.select("a[class=btn btn-sm btn-border]").select("a[onclick]");
+        List<String> courseNameList = new ArrayList<>();
+        for(Element element : courseNameElements){
+            String str = element.text();
+            System.out.println(str);
+            courseNameList.add(str);
+        }
+        List<String> courseList = new ArrayList<>();
+        for(Element element : courseIdElements){
+            String str = element.toString().substring(element.toString().indexOf("('")+"('".length(), element.toString().indexOf("')"));
+            String courseId = str.substring(str.length()-4);
+            System.out.println(courseId);
+            courseList.add(str);
+            String examineDetailUrl = "http://222.22.63.178/student/courseSelect?studentCourseId="+courseId;
+        }*/
+
+        String examineDetailUrl = "http://222.22.63.178/student/exercise";
+        String examineDetailHtml = HttpClient.sendGet(examineDetailUrl, null);
+
+        Document document = Jsoup.parse(examineDetailHtml);
+        Elements examineElements = document.select("script[type=text/javascript]");
+        JSONArray jsonArray = new JSONArray();
+        for(Element element : examineElements){
+            if(element.html().contains("var questionsJson =")) {
+                String str = element.html().replace("\n", ""); //这里是为了解决 无法多行匹配的问题
+                Matcher matcher = Pattern.compile("var questionsJson = \\[(.*?)\\]").matcher(str);
+                if(matcher.find()){
+                    String questionsVar = matcher.group().replace("var questionsJson =", "");
+                    jsonArray = JSONObject.parseArray(questionsVar);
+                }
+            }
+        }
+        for(int i = 0 ; i < jsonArray.size() ; i++) {
+            jsonArray.getJSONObject(i).get("id");
+            jsonArray.getJSONObject(i).get("type");
+        }
+    }
+
 
     public String register0(User user) {
         try {
@@ -229,6 +289,25 @@ public class ZhengZhouController {
     public String listenClazz() {
         try {
             return clazzService.listenClazz();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return e.getMessage();
+        }
+    }
+
+    @RequestMapping(value = "/getAnswers", method = RequestMethod.GET)
+    public Object getAnswer(Answer answer) {
+        try {
+            List<Answer> answerList = answerMapper.selectForList(answer);
+            List<QuestAnswer> questAnswerList = new ArrayList<>();
+            for(Answer model : answerList){
+                QuestAnswer questAnswer = new QuestAnswer();
+                questAnswer.set题目(model.getQuestName());
+                questAnswer.set选项(model.getAnswersName());
+                questAnswer.set答案(model.getAnswers());
+                questAnswerList.add(questAnswer);
+            }
+            return questAnswerList;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return e.getMessage();

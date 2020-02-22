@@ -29,6 +29,8 @@ public class ClazzServiceImpl implements ClazzService {
     @Autowired
     QuestionService questionService;
 
+    HttpClient HttpClient = new HttpClient();
+
     @Override
     public String listenClazz() {
         // 进去那个页面(测试和测试主页列表)  http://171.8.225.133/vls5s/vls3isapi2.dll/lookonecourse?

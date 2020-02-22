@@ -49,6 +49,8 @@ public class QuestionServiceImpl implements QuestionService {
     //    private static final String kecheng = "http://123.15.57.74/vls5s/vls3isapi2.dll/";
     private static final String kecheng = "http://171.8.225.133/vls5s/vls3isapi2.dll/";
 
+    HttpClient HttpClient = new HttpClient();
+
     /**
      * [查询] 根据主键 id 查询
      * @author xinchao.pan

@@ -38,7 +38,7 @@ public class ScaUserScheduler {
     /**
      * 判断某个账户是否测试完成
      */
-    @Scheduled(cron = "0 0/2 * * * ?")
+//    @Scheduled(cron = "0 0/2 * * * ?")
     @Async("asyncScheduleExecutor")
     public void scanTestScheduler() {
         LOGGER.info("判断某个账户是否测试完成");
