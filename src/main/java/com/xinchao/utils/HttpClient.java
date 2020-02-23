@@ -47,7 +47,7 @@ public class HttpClient {
                 bos.write(buffer, 0, len);
             }
             byte[] getData = bos.toByteArray();;     //获得网站的二进制数据
-            result = new String(getData, getCharset(urlNameString));
+            result = new String(getData, url.contains("http://222.22.63.178")?"UTF-8":"gb2312");
         } catch (Exception e) {
             System.out.println("发送GET请求出现异常！" + e);
             return null;

@@ -92,7 +92,7 @@ public class ZhengZhouController {
 
         try {
             List<User> users = userMapper.selectForList(new User());
-            String ptopId = questionService.login(users.get(25));
+            String ptopId = questionService.login(users.get(0));
             String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid="+ptopId;
             // 设置cookie
             HttpClient.sendGetNoRedirects(cookieUrl, null);
@@ -100,111 +100,220 @@ public class ZhengZhouController {
             System.out.println("------------------------------以下为需要测试功能代码---------------------------------");
 
             Examine examineQuery = new Examine();
-            examineQuery.setIsReply(0);
-            examineQuery.setQuestType("base-1");
+//            examineQuery.setIsReply(0);
+//            examineQuery.setQuestType("danxuan-1");
             List<Examine> examines = examineMapper.selectForList(examineQuery);
 
             Elements questElements = new Elements();
             Elements answersElements = new Elements();
             Elements answerElements = new Elements();
+            int succeed = 0;
+            int fail = 0;
             for(Examine model :examines){
                 String quest = "";
                 String answers = "";
                 String answer = "";
-                String examineDetailUrl = "http://222.22.63.178/student/getQuestion?isSimulate=1&qId="+ model.getQuestId();
+                String examineDetailUrl = "http://222.22.63.178/student/getQuestion?isSimulate=1&qId=" + model.getQuestId();
                 System.out.println(examineDetailUrl);
                 String examineDetailHtml = HttpClient.sendGet(examineDetailUrl, null);
                 if(StringUtils.isBlank(examineDetailHtml)){
+                    fail++;
                     continue;
                 }
                 Document document = Jsoup.parse(examineDetailHtml);
-                if(model.getQuestType().equals(QuestionType.JST.getCode())){ // 计算题
+                if(model.getQuestType().equals(QuestionType.JST.getCode()) // 计算题
+                    || model.getQuestType().equals(QuestionType.LST.getCode()) // 论述题
+                    || model.getQuestType().equals(QuestionType.XZT.getCode()) // 写作题
+                    || model.getQuestType().equals(QuestionType.SJT.getCode())// 设计题
+                    || model.getQuestType().equals(QuestionType.YWT.getCode()) // 业务题
+                    || model.getQuestType().equals(QuestionType.ZCFY.getCode()) // 字词翻译
+                    || model.getQuestType().equals(QuestionType.HTT.getCode()) // 绘图题
+                    || model.getQuestType().equals(QuestionType.BCT.getCode()) // 编程题
+                    || model.getQuestType().equals(QuestionType.JCT.getCode()) // 纠错题
+                    || model.getQuestType().equals(QuestionType.JDT.getCode()) // 简答题
+                    || model.getQuestType().equals(QuestionType.MCJS.getCode()) // 名词解释
+                    || model.getQuestType().equals(QuestionType.DYFY.getCode()) // 短语翻译
+                    || model.getQuestType().equals(QuestionType.JZFY.getCode()) // 句子翻译
+                    || model.getQuestType().equals(QuestionType.DLFX.getCode()) // 段落翻译
+                    || model.getQuestType().equals(QuestionType.WDT.getCode()) // 问答题
+                    || model.getQuestType().equals(QuestionType.TKT.getCode()) // 填空题
+                    || model.getQuestType().equals(QuestionType.TLTKT.getCode()) // 听力填空题
+                    || model.getQuestType().equals(QuestionType.ZHT.getCode()) // 组合题
+                    || model.getQuestType().equals(QuestionType.ALFX.getCode()) // 案例分析
+                ){
                     // 问题
-                    questElements = document.select("h4");
-                    if(null != questElements){
-                        if(questElements.get(0).html().contains("img")){
+                    questElements = document.select("div[class=shiti-item cl q-item subjective]")
+                            .select("div[data-q-id="+model.getQuestId()+"]").select("div > h4,div > h3,div > h2,div > h1");
+                    if(null != questElements && questElements.size() > 0){
+                        for(int i = 0 ; i < questElements.size() ; i++){
                             // 有图片
-                            Elements questImgElements = questElements.select("img");
-                            for(Element  element : questImgElements){
-                                String src = "http://222.22.63.178" + element.attr("src").replace("\"","");
-                                quest = quest + src + ";";
+                            if(questElements.get(i).html().contains("img")){
+                                Elements questImgElements = questElements.select("img");
+                                for(Element  element : questImgElements){
+                                    String src = "http://222.22.63.178" + element.attr("src").replace("\"","");
+                                    if(StringUtils.isNotBlank(src)){
+                                        quest = quest + src + ";";
+                                    }
+                                }
+                            }
+                            if(StringUtils.isNotBlank(questElements.get(i).text())){
+                                quest = quest + questElements.get(i).text();
                             }
                         }
-                        quest = quest + questElements.get(0).text();
+                    }
+                    // 继续寻找题目
+                    if(StringUtils.isBlank(quest)){
+                        questElements = document.select("div[class=shiti-item cl q-item subjective]")
+                                .select("div[data-q-id="+model.getQuestId()+"]");
+                        if(null != questElements && questElements.size() > 0){
+                            for(int i = 0 ; i < questElements.size() ; i++){
+                                // 有图片
+                                if(questElements.get(i).html().contains("img")){
+                                    Elements questImgElements = questElements.select("img");
+                                    for(Element  element : questImgElements){
+                                        String src = "http://222.22.63.178" + element.attr("src").replace("\"","");
+                                        if(StringUtils.isNotBlank(src)){
+                                            quest = quest + src + ";";
+                                        }
+                                    }
+                                }
+                                if(StringUtils.isNotBlank(questElements.get(i).text())){
+                                    quest = quest + questElements.get(i).text();
+                                }
+                            }
+                        }
+                        quest = quest.replace("http://222.22.63.178;","").replace(" 收藏 扫一扫上传图 预览","");
                     }
                     // 答案
                     String answerJsoup ="id=see-answer_"+model.getQuestId();
                     answerElements = document.select("div["+answerJsoup+"]");
-                    if(null != answerElements){
+                    if(null != answerElements && answerElements.size() > 0){
                         if(answerElements.get(0).html().contains("img")){
                             // 有图片
                             answerElements = answerElements.select("img");
                             for(Element  element : answerElements){
-                                String src = "http://222.22.63.178"+element.attr("src").replace("\"","");
+                                String src = "http://222.22.63.178"+ element.attr("src").replace("\"","");
                                 answer = answer + src + ";";
                             }
                         }
                         answer = answer + answerElements.get(0).text();
                     }
+                }else if(model.getQuestType().equals(QuestionType.DANXT.getCode()) // 单选题
+                    || model.getQuestType().equals(QuestionType.TL1.getCode()) // 听力一
+                    || model.getQuestType().equals(QuestionType.YYDH.getCode()) // 英语对话
+                    || model.getQuestType().equals(QuestionType.DUOXT.getCode()) // 多选题
+                    || model.getQuestType().equals(QuestionType.PDT.getCode()) // 判断题
 
-                }else if(model.getQuestType().equals(QuestionType.LST.getCode())){ // 论述题
+                    /*|| model.getQuestType().equals(QuestionType.YDLJ.getCode()) // 阅读理解
+                    || model.getQuestType().equals(QuestionType.SXXWXTK.getCode()) // 十选项完形填空
+                    || model.getQuestType().equals(QuestionType.TL2.getCode()) // 听力二
+                    || model.getQuestType().equals(QuestionType.WXXWXTK.getCode()) // 五选项完型填空*/
+                ){
+                    // 题目
+                    questElements = document.select("div[class=shiti-item cl q-item]")
+                            .select("div[data-q-id="+model.getQuestId()+"]").select("div > h4,div > h3,div > h2,div > h1");
+                    if(null != questElements && questElements.size() > 0){
+                        for(int i = 0 ; i < questElements.size() ; i++){
+                            // 有图片
+                            if(questElements.get(i).html().contains("src")){
+                                Elements questSrcElements = questElements.get(i).select("src");
+                                for(Element questSrcElement : questSrcElements){
+                                    if(null != questSrcElement.getElementsByTag("embed")){
+                                        String embedSuffix = questSrcElement.getElementsByTag("embed").attr("src");
+                                        if(StringUtils.isNotBlank(embedSuffix)){
+                                            String embedSrc = "http://222.22.63.178" + embedSuffix.replace("\"","");
+                                            if(StringUtils.isNotBlank(embedSrc)){
+                                                quest = quest + embedSrc + ";";
+                                            }
+                                        }
+                                    }
+                                    if(null != questSrcElement.getElementsByTag("img")){
+                                        String imgSuffix = questSrcElement.getElementsByTag("img").attr("src");
+                                        if(StringUtils.isNotBlank(imgSuffix)){
+                                            String imgSrc = "http://222.22.63.178" + imgSuffix.replace("\"","");
+                                            if(StringUtils.isNotBlank(imgSrc)){
+                                                quest = quest + imgSrc + ";";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if(StringUtils.isNotBlank(questElements.get(i).text())){
+                                quest = quest + questElements.get(i).text();
+                            }
+                        }
+                    }
+                    // 继续寻找题目
+                    if(StringUtils.isBlank(quest)){
+                        Element questElement = document.select("div[class=shiti-item cl q-item]").select("p").first();
+                        if(null != questElement){
+                            // 有图片
+                            if(questElement.html().contains("src")){
+                                Elements questSrcElements = questElement.select("embed,img");
+                                for(Element questSrcElement : questSrcElements){
+                                    if(null != questSrcElement.getElementsByTag("embed")){
+                                        String embedSuffix = questSrcElement.getElementsByTag("embed").attr("src");
+                                        if(StringUtils.isNotBlank(embedSuffix)){
+                                            String embedSrc = "http://222.22.63.178" + embedSuffix.replace("\"","");
+                                            if(StringUtils.isNotBlank(embedSrc)){
+                                                quest = quest + embedSrc + ";";
+                                            }
+                                        }
+                                    }
+                                    if(null != questSrcElement.getElementsByTag("img")){
+                                        String imgSuffix = questSrcElement.getElementsByTag("img").attr("src");
+                                        if(StringUtils.isNotBlank(imgSuffix)){
+                                            String imgSrc = "http://222.22.63.178" + imgSuffix.replace("\"","");
+                                            if(StringUtils.isNotBlank(imgSrc)){
+                                                quest = quest + imgSrc + ";";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if(StringUtils.isNotBlank(questElement.text())){
+                                quest = quest + questElements.text();
+                            }
+                        }
+                        if(StringUtils.isNotBlank(quest)){
+                            quest = quest.replace("http://222.22.63.178;","").replace(" 收藏 扫一扫上传图 预览","");
+                        }
+                    }
 
-                }else if(model.getQuestType().equals(QuestionType.XZT.getCode())){ // 写作题
-
-                }else if(model.getQuestType().equals(QuestionType.SJT.getCode())){ // 设计题
-
-                }else if(model.getQuestType().equals(QuestionType.YWT.getCode())){ // 业务题
-
-                }else if(model.getQuestType().equals(QuestionType.ZCFY.getCode())){ // 字词翻译
-
-                }else if(model.getQuestType().equals(QuestionType.HTT.getCode())){ // 绘图题"
-
-                }else if(model.getQuestType().equals(QuestionType.BCT.getCode())){ // 编程题
-
-                }else if(model.getQuestType().equals(QuestionType.JCT.getCode())){ // 纠错题
-
-                }else if(model.getQuestType().equals(QuestionType.JDT.getCode())){ // 简答题
-
-                }else if(model.getQuestType().equals(QuestionType.MCJS.getCode())){ // 名词解释
-
-                }else if(model.getQuestType().equals(QuestionType.DYFY.getCode())){ // 短语翻译
-
-                }else if(model.getQuestType().equals(QuestionType.JZFY.getCode())){ // 句子翻译
-
-                }else if(model.getQuestType().equals(QuestionType.DLFX.getCode())){ // 段落翻译
-
-                }else if(model.getQuestType().equals(QuestionType.DANXT.getCode())){ // 单选题
-
-                }else if(model.getQuestType().equals(QuestionType.TL1.getCode())){ // 听力一
-
-                }else if(model.getQuestType().equals(QuestionType.YYDH.getCode())){ // 英语对话
-
-                }else if(model.getQuestType().equals(QuestionType.DUOXT.getCode())){ // 多选题
-
-                }else if(model.getQuestType().equals(QuestionType.WDT.getCode())){ // 问答题
-
-                }else if(model.getQuestType().equals(QuestionType.TKT.getCode())){ // 填空题
-
-                }else if(model.getQuestType().equals(QuestionType.TLTKT.getCode())){ // 听力填空题
-
+                    // 选项
+                    answersElements = document.select("div[class=shiti-item-left]").select("p[class=answer],p+div");
+                    if(answersElements.size()>0 && answersElements.size() % 2 == 0){
+                        if(null != answersElements && answersElements.size() > 0){
+                            for(int i = 0 ; i < answersElements.size() ; i = i+2) {
+                                answers = answers + answersElements.get(i).text();
+                                if(answersElements.get(i+1).html().contains("src")){
+                                    // 有图片
+                                    Elements answersImgElements = answersElements.get(i).select("src");
+                                    for(Element element : answersImgElements){
+                                        String src = "http://222.22.63.178"+element.attr("src").replace("\"","");
+                                        answers = answers + src + ";";
+                                    }
+                                }
+                                answers = answers + answersElements.get(i+1).text()+ ";";
+                                if(answersElements.get(i).toString().contains("data-o-right-flag=\"1\"")){
+                                    answer = answer + answersElements.get(i).text();
+                                }
+                            }
+                        }
+                    }
+                    // 答案
+                    if(StringUtils.isBlank(answer)){
+                        answerElements = document.select("p[class=dacuo]");
+                        if(null != answerElements && answerElements.size() > 0){
+                            answer = answer + answerElements.get(0).text();
+                        }
+                    }
                 }else if(model.getQuestType().equals(QuestionType.PDT.getCode())){ // 判断题
 
-                }else if(model.getQuestType().equals(QuestionType.ZHT.getCode())){ // 组合题
+                    // <p class="answer" data-o-id="0054010630011" data-o-right-flag="1"
 
-                }else if(model.getQuestType().equals(QuestionType.ALFX.getCode())){ // 案例分析
-
-                }else if(model.getQuestType().equals(QuestionType.YDLJ.getCode())){ // 阅读理解
-
-                }else if(model.getQuestType().equals(QuestionType.SXXWXTK.getCode())){ // 十选项完形填空
-
-                }else if(model.getQuestType().equals(QuestionType.TL2.getCode())){ // 听力二
-
-                }else if(model.getQuestType().equals(QuestionType.WXXWXTK.getCode())){ // 五选项完型填空
-
-                }else if(model.getQuestType().equals(QuestionType.SCT.getCode())){ // 上传题
-
-                }else if(model.getQuestType().equals(QuestionType.SCTFZG.getCode())){ // 上传题(非主观)
-
+                }else if(model.getQuestType().equals(QuestionType.SCT.getCode()) // 上传题
+                    || model.getQuestType().equals(QuestionType.SCTFZG.getCode())){ // 上传题(非主观)
                 }
                 if(StringUtils.isNotBlank(quest)){
                     model.setQuestName(quest);
@@ -212,21 +321,19 @@ public class ZhengZhouController {
                 if(StringUtils.isNotBlank(answers)){
                     model.setAnswersName(answers);
                 }
-                if(StringUtils.isNotBlank(answer)){
-                    if(!answer.contains("没有详解")){
-                        model.setSubjAnswer(answer);
-                        model.setIsReply(1);
-                    }else{
-                        model.setIsReply(2);
-                    }
+                if(StringUtils.isNotBlank(answer) && !answer.contains("没有详解")){
+                    model.setSubjAnswer(answer);
+                    model.setIsReply(1);
+                }else{
+                    model.setIsReply(2);
                 }
-                examineMapper.update(model);
+                succeed = succeed + examineMapper.update(model);
             }
-            System.out.println("结束");
+            System.out.println("succeed:"+succeed);
+            System.out.println("fail:"+fail);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-
     }
 
     @RequestMapping(value = "/getExamineAll", method = RequestMethod.GET)
@@ -417,7 +524,9 @@ public class ZhengZhouController {
     @RequestMapping(value = "/openTest", method = RequestMethod.GET)
     public String openTest() {
         try {
-            return questionService.openTest();
+            String aa = questionService.openTest();
+            String bb = questionService.submitAnswer();
+            return aa+bb;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return e.getMessage();
