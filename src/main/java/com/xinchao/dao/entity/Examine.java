@@ -52,7 +52,7 @@ public class Examine {
     private String questType;
 
     /**
-     * 是否有答案。0：没有答案；1：有答案
+     * 是否有答案。0：初始化；1：有答案(网站)；2：没有答案（需要去人工做题）；-1：错误题目
      */
     private Integer isReply;
 

@@ -211,9 +211,9 @@ public class ZhengZhouController {
                         for(int i = 0 ; i < questElements.size() ; i++){
                             // 有图片
                             if(questElements.get(i).html().contains("src")){
-                                Elements questSrcElements = questElements.get(i).select("src");
+                                Elements questSrcElements = questElements.get(i).select("img[src],embed[src]");
                                 for(Element questSrcElement : questSrcElements){
-                                    if(null != questSrcElement.getElementsByTag("embed")){
+                                    if(null != questSrcElement.getElementsByTag("embed") && questSrcElement.getElementsByTag("embed").size() > 0){
                                         String embedSuffix = questSrcElement.getElementsByTag("embed").attr("src");
                                         if(StringUtils.isNotBlank(embedSuffix)){
                                             String embedSrc = "http://222.22.63.178" + embedSuffix.replace("\"","");
@@ -221,8 +221,7 @@ public class ZhengZhouController {
                                                 quest = quest + embedSrc + ";";
                                             }
                                         }
-                                    }
-                                    if(null != questSrcElement.getElementsByTag("img")){
+                                    } else if(null != questSrcElement.getElementsByTag("img") && questSrcElement.getElementsByTag("img").size() > 0){
                                         String imgSuffix = questSrcElement.getElementsByTag("img").attr("src");
                                         if(StringUtils.isNotBlank(imgSuffix)){
                                             String imgSrc = "http://222.22.63.178" + imgSuffix.replace("\"","");
@@ -244,9 +243,9 @@ public class ZhengZhouController {
                         if(null != questElement){
                             // 有图片
                             if(questElement.html().contains("src")){
-                                Elements questSrcElements = questElement.select("embed,img");
+                                Elements questSrcElements = questElement.select("img[src],embed[src]");
                                 for(Element questSrcElement : questSrcElements){
-                                    if(null != questSrcElement.getElementsByTag("embed")){
+                                    if(null != questSrcElement.getElementsByTag("embed") && questSrcElement.getElementsByTag("embed").size() > 0){
                                         String embedSuffix = questSrcElement.getElementsByTag("embed").attr("src");
                                         if(StringUtils.isNotBlank(embedSuffix)){
                                             String embedSrc = "http://222.22.63.178" + embedSuffix.replace("\"","");
@@ -254,8 +253,7 @@ public class ZhengZhouController {
                                                 quest = quest + embedSrc + ";";
                                             }
                                         }
-                                    }
-                                    if(null != questSrcElement.getElementsByTag("img")){
+                                    } else if(null != questSrcElement.getElementsByTag("img") && questSrcElement.getElementsByTag("img").size() > 0){
                                         String imgSuffix = questSrcElement.getElementsByTag("img").attr("src");
                                         if(StringUtils.isNotBlank(imgSuffix)){
                                             String imgSrc = "http://222.22.63.178" + imgSuffix.replace("\"","");
@@ -283,7 +281,7 @@ public class ZhengZhouController {
                                 answers = answers + answersElements.get(i).text();
                                 if(answersElements.get(i+1).html().contains("src")){
                                     // 有图片
-                                    Elements answersImgElements = answersElements.get(i).select("src");
+                                    Elements answersImgElements = answersElements.get(i+1).select("img[src],embed[src]");
                                     for(Element element : answersImgElements){
                                         String src = "http://222.22.63.178"+element.attr("src").replace("\"","");
                                         answers = answers + src + ";";
@@ -312,10 +310,118 @@ public class ZhengZhouController {
                     || model.getQuestType().equals(QuestionType.TL2.getCode()) // 听力二
                     || model.getQuestType().equals(QuestionType.WXXWXTK.getCode()) // 五选项完型填空
                 ){
-                    // <p class="answer" data-o-id="0054010630011" data-o-right-flag="1"
+                    // 题目
+                    questElements = document.select("div[data-q-id="+model.getQuestId()+"]").select("div > h4,div > h3,div > h2,div > h1");
+                    int k=0;
+                    if(null != questElements && questElements.size() > 0){
+                        for(Element element: questElements){
+                            if(StringUtils.isNotBlank(element.text())){
+                                k++;
+                            }
+                            if(k >= 2){
+                                break;
+                            }
+                        }
+                        for(int i = 0 ; i < questElements.size() ; i++){
+                            if(k >= 2){
+                                quest = quest + i + ":";
+                            }
+                            // 有图片
+                            if(questElements.get(i).html().contains("src")){
+                                Elements questSrcElements = questElements.get(i).select("img[src],embed[src]");
+                                for(Element questSrcElement : questSrcElements){
+                                    if(null != questSrcElement.getElementsByTag("embed") && questSrcElement.getElementsByTag("embed").size() > 0){
+                                        String embedSuffix = questSrcElement.getElementsByTag("embed").attr("src");
+                                        if(StringUtils.isNotBlank(embedSuffix)){
+                                            String embedSrc = "http://222.22.63.178" + embedSuffix.replace("\"","");
+                                            if(StringUtils.isNotBlank(embedSrc)){
+                                                quest = quest + embedSrc + ";";
+                                            }
+                                        }
+                                    } else if(null != questSrcElement.getElementsByTag("img") && questSrcElement.getElementsByTag("img").size() > 0){
+                                        String imgSuffix = questSrcElement.getElementsByTag("img").attr("src");
+                                        if(StringUtils.isNotBlank(imgSuffix)){
+                                            String imgSrc = "http://222.22.63.178" + imgSuffix.replace("\"","");
+                                            if(StringUtils.isNotBlank(imgSrc)){
+                                                quest = quest + imgSrc + ";";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if(StringUtils.isNotBlank(questElements.get(i).text())){
+                                quest = quest + questElements.get(i).text();
+                            }
+                        }
+                    }
+                    // 继续寻找题目
+                    if(StringUtils.isBlank(quest)){
+                        Element questElement = document.select("div[class=shiti-item cl q-item]").select("p").first();
+                        if(null != questElement){
+                            // 有图片
+                            if(questElement.html().contains("src")){
+                                Elements questSrcElements = questElement.select("img[src],embed[src]");
+                                for(Element questSrcElement : questSrcElements){
+                                    if(null != questSrcElement.getElementsByTag("embed") && questSrcElement.getElementsByTag("embed").size() > 0){
+                                        String embedSuffix = questSrcElement.getElementsByTag("embed").attr("src");
+                                        if(StringUtils.isNotBlank(embedSuffix)){
+                                            String embedSrc = "http://222.22.63.178" + embedSuffix.replace("\"","");
+                                            if(StringUtils.isNotBlank(embedSrc)){
+                                                quest = quest + embedSrc + ";";
+                                            }
+                                        }
+                                    } else if(null != questSrcElement.getElementsByTag("img") && questSrcElement.getElementsByTag("img").size() > 0){
+                                        String imgSuffix = questSrcElement.getElementsByTag("img").attr("src");
+                                        if(StringUtils.isNotBlank(imgSuffix)){
+                                            String imgSrc = "http://222.22.63.178" + imgSuffix.replace("\"","");
+                                            if(StringUtils.isNotBlank(imgSrc)){
+                                                quest = quest + imgSrc + ";";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            if(StringUtils.isNotBlank(questElement.text())){
+                                quest = quest + questElements.text();
+                            }
+                        }
+                        if(StringUtils.isNotBlank(quest)){
+                            quest = quest.replace("http://222.22.63.178;","").replace(" 收藏 扫一扫上传图 预览","");
+                        }
+                    }
 
-
-
+                    // 选项
+                    answersElements = document.select("div[class=shiti-item-left]").select("p[class=answer],p+div");
+                    int j = 0;
+                    if(answersElements.size() > 0 && answersElements.size() % 2 == 0){
+                        if(null != answersElements && answersElements.size() > 0){
+                            for(int i = 0 ; i < answersElements.size() ; i = i+2) {
+                                if(answersElements.get(i).text().equals("A.")){
+                                    j++;
+                                }
+                                answers = answers + j + ":" + answersElements.get(i).text();
+                                if(answersElements.get(i+1).html().contains("src")){
+                                    // 有图片
+                                    Elements answersImgElements = answersElements.get(i+1).select("img[src],embed[src]");
+                                    for(Element element : answersImgElements){
+                                        String src = "http://222.22.63.178"+element.attr("src").replace("\"","");
+                                        answers = answers + src + ";";
+                                    }
+                                }
+                                answers = answers + answersElements.get(i+1).text()+ ";";
+                                if(answersElements.get(i).toString().contains("data-o-right-flag=\"1\"")){
+                                    answer = answer+ j + ":" + answersElements.get(i).text();
+                                }
+                            }
+                        }
+                    }
+                    // 答案
+                    if(StringUtils.isBlank(answer)){
+                        answerElements = document.select("p[class=dacuo]");
+                        if(null != answerElements && answerElements.size() > 0){
+                            answer = answer + answerElements.get(0).text();
+                        }
+                    }
                 }else if(model.getQuestType().equals(QuestionType.SCT.getCode()) // 上传题
                     || model.getQuestType().equals(QuestionType.SCTFZG.getCode())){ // 上传题(非主观)
                 }
