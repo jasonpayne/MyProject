@@ -203,11 +203,6 @@ public class ZhengZhouController {
                     || model.getQuestType().equals(QuestionType.YYDH.getCode()) // 英语对话
                     || model.getQuestType().equals(QuestionType.DUOXT.getCode()) // 多选题
                     || model.getQuestType().equals(QuestionType.PDT.getCode()) // 判断题
-
-                    /*|| model.getQuestType().equals(QuestionType.YDLJ.getCode()) // 阅读理解
-                    || model.getQuestType().equals(QuestionType.SXXWXTK.getCode()) // 十选项完形填空
-                    || model.getQuestType().equals(QuestionType.TL2.getCode()) // 听力二
-                    || model.getQuestType().equals(QuestionType.WXXWXTK.getCode()) // 五选项完型填空*/
                 ){
                     // 题目
                     questElements = document.select("div[class=shiti-item cl q-item]")
@@ -296,7 +291,11 @@ public class ZhengZhouController {
                                 }
                                 answers = answers + answersElements.get(i+1).text()+ ";";
                                 if(answersElements.get(i).toString().contains("data-o-right-flag=\"1\"")){
-                                    answer = answer + answersElements.get(i).text();
+                                    if(model.getQuestType().equals(QuestionType.PDT.getCode())){
+                                        answer = answer + answersElements.get(i+1).text();
+                                    }else {
+                                        answer = answer + answersElements.get(i).text();
+                                    }
                                 }
                             }
                         }
@@ -308,9 +307,14 @@ public class ZhengZhouController {
                             answer = answer + answerElements.get(0).text();
                         }
                     }
-                }else if(model.getQuestType().equals(QuestionType.PDT.getCode())){ // 判断题
-
+                }else if(model.getQuestType().equals(QuestionType.YDLJ.getCode()) // 阅读理解
+                    || model.getQuestType().equals(QuestionType.SXXWXTK.getCode()) // 十选项完形填空
+                    || model.getQuestType().equals(QuestionType.TL2.getCode()) // 听力二
+                    || model.getQuestType().equals(QuestionType.WXXWXTK.getCode()) // 五选项完型填空
+                ){
                     // <p class="answer" data-o-id="0054010630011" data-o-right-flag="1"
+
+
 
                 }else if(model.getQuestType().equals(QuestionType.SCT.getCode()) // 上传题
                     || model.getQuestType().equals(QuestionType.SCTFZG.getCode())){ // 上传题(非主观)
@@ -318,7 +322,7 @@ public class ZhengZhouController {
                 if(StringUtils.isNotBlank(quest)){
                     model.setQuestName(quest);
                 }
-                if(StringUtils.isNotBlank(answers)){
+                if(StringUtils.isNotBlank(answers) && !model.getQuestType().equals(QuestionType.PDT.getCode())){
                     model.setAnswersName(answers);
                 }
                 if(StringUtils.isNotBlank(answer) && !answer.contains("没有详解")){
