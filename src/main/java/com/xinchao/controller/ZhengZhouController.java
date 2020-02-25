@@ -53,6 +53,9 @@ public class ZhengZhouController {
     @Autowired
     ExamineMapper examineMapper;
 
+    @Autowired
+    CourseMapper courseMapper;
+
     HttpClient HttpClient = new HttpClient();
 
     @RequestMapping(value = "/register", method = RequestMethod.GET)
@@ -87,9 +90,59 @@ public class ZhengZhouController {
         }
     }
 
-    @RequestMapping(value = "/mytest", method = RequestMethod.GET)
-    public void mytest() {
 
+    /**
+     * 一次性获取所有网考题（慎用）
+     */
+    @RequestMapping(value = "/getExamineAll", method = RequestMethod.GET)
+    public int getExamineAll() {
+        int succeed = 0;
+        try {
+            List<User> users = userMapper.selectForList(new User());
+            String ptopId = questionService.login(users.get(20));
+            String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid="+ptopId;
+            // 设置cookie
+            HttpClient.sendGetNoRedirects(cookieUrl, null);
+
+            String examineDetailUrl = "http://222.22.63.178/student/exercise";
+            String examineDetailHtml = HttpClient.sendGet(examineDetailUrl, null);
+            Document document = Jsoup.parse(examineDetailHtml);
+            Elements examineElements = document.select("script[type=text/javascript]");
+            JSONArray jsonArray = new JSONArray();
+            for(Element element : examineElements){
+                if(element.html().contains("var questionsJson =")) {
+                    String str = element.html().replace("\n", ""); //这里是为了解决 无法多行匹配的问题
+                    Matcher matcher = Pattern.compile("var questionsJson = \\[(.*?)\\]").matcher(str);
+                    if(matcher.find()){
+                        String questionsVar = matcher.group().replace("var questionsJson =", "");
+                        jsonArray = JSONObject.parseArray(questionsVar);
+                    }
+                }
+            }
+            List<Examine> list = new ArrayList<>();
+            for(int i = 0 ; i < jsonArray.size() ; i++) {
+                Examine examine = new Examine();
+                examine.setQuestId(jsonArray.getJSONObject(i).getString("id"));
+                examine.setQuestType(jsonArray.getJSONObject(i).getString("type"));
+                examine.setIsReply(0);
+                list.add(examine);
+                if (list.size() > 10000) {
+                    succeed = succeed + examineMapper.insertBatch(list);
+                    list.clear();
+                }
+            }
+            if (list.size() > 0) {
+                succeed = succeed + examineMapper.insertBatch(list);
+            }
+            return succeed;
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return succeed;
+    }
+
+    @RequestMapping(value = "/getExamineAnswer", method = RequestMethod.GET)
+    public void getExamineAnswer() {
         try {
             List<User> users = userMapper.selectForList(new User());
             String ptopId = questionService.login(users.get(0));
@@ -446,82 +499,140 @@ public class ZhengZhouController {
         }
     }
 
-    @RequestMapping(value = "/getExamineAll", method = RequestMethod.GET)
-    public int getExamineAll() {
-        int succeed = 0;
+    /**
+     * 一次性获取已有账号需要考试的所有课程信息（慎用）
+     */
+    @RequestMapping(value = "/getCourseAll", method = RequestMethod.GET)
+    public void getCourseAll() {
         try {
             List<User> users = userMapper.selectForList(new User());
-            String ptopId = questionService.login(users.get(20));
-            String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid="+ptopId;
-            // 设置cookie
-            HttpClient.sendGetNoRedirects(cookieUrl, null);
-            /*String examinesUrl = "http://222.22.63.178/student/courseList";
-            String examinesHtml = HttpClient.sendGet(examinesUrl, null);*/
-            /*if(examinesHtml.contains("你的登录信息已经失效")){
-
-            }*/
-
-            /*Elements courseNameElements = new Elements();
-            Elements courseIdElements = new Elements();
-            Document examineDocument = Jsoup.parse(examinesHtml);
-            courseNameElements = examineDocument.select("p[class=text_center class-name float-l]");
-            courseIdElements = examineDocument.select("a[class=btn btn-sm btn-border]").select("a[onclick]");
-            List<String> courseNameList = new ArrayList<>();
-            for(Element element : courseNameElements){
-                String str = element.text();
-                System.out.println(str);
-                courseNameList.add(str);
-            }
-            List<String> courseList = new ArrayList<>();
-            for(Element element : courseIdElements){
-                String str = element.toString().substring(element.toString().indexOf("('")+"('".length(), element.toString().indexOf("')"));
-                String courseId = str.substring(str.length()-4);
-                System.out.println(courseId);
-                courseList.add(str);
-                String examineDetailUrl = "http://222.22.63.178/student/courseSelect?studentCourseId="+courseId;
-            }*/
-
-            String examineDetailUrl = "http://222.22.63.178/student/exercise";
-            String examineDetailHtml = HttpClient.sendGet(examineDetailUrl, null);
-
-            Document document = Jsoup.parse(examineDetailHtml);
-            Elements examineElements = document.select("script[type=text/javascript]");
-            JSONArray jsonArray = new JSONArray();
-            for(Element element : examineElements){
-                if(element.html().contains("var questionsJson =")) {
-                    String str = element.html().replace("\n", ""); //这里是为了解决 无法多行匹配的问题
-                    Matcher matcher = Pattern.compile("var questionsJson = \\[(.*?)\\]").matcher(str);
-                    if(matcher.find()){
-                        String questionsVar = matcher.group().replace("var questionsJson =", "");
-                        jsonArray = JSONObject.parseArray(questionsVar);
+            for (User user : users) {
+                String ptopId = questionService.login(user);
+                String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid="+ptopId;
+                // 设置cookie
+                HttpClient.sendGetNoRedirects(cookieUrl, null);
+                String examinesUrl = "http://222.22.63.178/student/courseList";
+                String examinesHtml = HttpClient.sendGet(examinesUrl, null);
+                Elements courseElements = new Elements();
+                Document examineDocument = Jsoup.parse(examinesHtml);
+                courseElements = examineDocument.select("li[class=class-list-li]");
+                for(Element courseElement : courseElements){
+                    String courseName = courseElement.select("p[class=text_center class-name float-l]").text();
+                    String courseUrl = courseElement.select("a[href]").attr("href");
+                    String courseId = courseUrl.substring(courseUrl.length()-4);
+                    Course query = courseMapper.selectOne(courseId);
+                    if(null != query){
+                        if(!query.getUid().equals(user.getUid())){
+                            query.setUid(user.getUid());
+                            courseMapper.update(query);
+                        }
+                    }else {
+                        Course course = new Course();
+                        course.setKeId(courseId);
+                        course.setKeName(courseName);
+                        course.setUid(user.getUid());
+                        course.setAmount(0);
+                        course.setIsComplete(0);
+                        courseMapper.insert(course);
                     }
                 }
             }
-            List<Examine> list = new ArrayList<>();
-            for(int i = 0 ; i < jsonArray.size() ; i++) {
-                Examine examine = new Examine();
-                examine.setQuestId(jsonArray.getJSONObject(i).getString("id"));
-                examine.setQuestType(jsonArray.getJSONObject(i).getString("type"));
-                examine.setIsReply(0);
-                list.add(examine);
-                if (list.size() > 10000) {
-                    succeed = succeed + examineMapper.insertBatch(list);
-                    list.clear();
-                }
-            }
-            if (list.size() > 0) {
-                succeed = succeed + examineMapper.insertBatch(list);
-            }
-            return succeed;
         }catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        return succeed;
+    }
+
+    /**
+     * 把课程信息和网考题关联起来
+     */
+    @RequestMapping(value = "/setCourseForExamine", method = RequestMethod.GET)
+    public void setCourseForExamine() {
+        try {
+            Course model = new Course();
+            model.setIsComplete(0);
+            List<Course> courses = courseMapper.selectForList(model);
+            int k = 0;
+            for (Course course : courses) {
+                User query= new User();
+                query.setUid(course.getUid());
+                User user = userMapper.selectOne(query);
+                String ptopId = questionService.login(user);
+                String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid="+ptopId;
+                // 设置cookie
+                HttpClient.sendGetNoRedirects(cookieUrl, null);
+
+                String examineDetailUrl = "http://222.22.63.178/student/courseSelect?studentCourseId="+course.getUid()+course.getKeId();
+                String examineDetailHtml = HttpClient.sendGet(examineDetailUrl, null);
+                Document document = Jsoup.parse(examineDetailHtml);
+                Elements examineElements = document.select("script[type=text/javascript]");
+                JSONArray jsonArray = new JSONArray();
+                for(Element element : examineElements){
+                    if(element.html().contains("var questionsJson =")) {
+                        String str = element.html().replace("\n", ""); //这里是为了解决 无法多行匹配的问题
+                        Matcher matcher = Pattern.compile("var questionsJson = \\[(.*?)\\]").matcher(str);
+                        if(matcher.find()){
+                            String questionsVar = matcher.group().replace("var questionsJson =", "");
+                            jsonArray = JSONObject.parseArray(questionsVar);
+                        }
+                    }
+                }
+                int amount = 0;
+                for(int i = 0 ; i < jsonArray.size() ; i++) {
+                    String questId = jsonArray.getJSONObject(i).getString("id");
+                    Examine examine = examineMapper.selectOne(questId);
+                    if(null != examine){
+                        examine.setKeId(course.getKeId());
+                        amount = amount + examineMapper.update(examine);
+                    }
+                    System.out.println(course.getKeId()+"==============关联数量============="+ ++k);
+                }
+                course.setAmount(amount);
+                course.setIsComplete(1);
+                courseMapper.update(course);
+            }
+        }catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public String register0(User user) {
         try {
             String ptopId = null;
+            System.out.println("===========================获取当前账号本学期所有需要考试课程==========================");
+            String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid="+user.getPtopId();
+            // 设置cookie
+            HttpClient.sendGetNoRedirects(cookieUrl, null);
+            String examinesUrl = "http://222.22.63.178/student/courseList";
+            String examinesHtml = HttpClient.sendGet(examinesUrl, null);
+            if(examinesHtml.contains("若忘记了密码，请联系你所在的学习中心")){
+                ptopId = questionService.login(user);
+                examinesUrl = "http://222.22.63.178/student/courseList";
+                examinesHtml = HttpClient.sendGet(examinesUrl, null);
+            }
+            Elements courseElements = new Elements();
+            Document examineDocument = Jsoup.parse(examinesHtml);
+            courseElements = examineDocument.select("li[class=class-list-li]");
+            for(Element courseElement : courseElements){
+                String courseName = courseElement.select("p[class=text_center class-name float-l]").text();
+                String courseUrl = courseElement.select("a[href]").attr("href");
+                String courseId = courseUrl.substring(courseUrl.length()-4);
+                Course query = courseMapper.selectOne(courseId);
+                if(null != query){
+                    if(!query.getUid().equals(user.getUid())){
+                        query.setUid(user.getUid());
+                        courseMapper.update(query);
+                    }
+                }else {
+                    Course course = new Course();
+                    course.setKeId(courseId);
+                    course.setKeName(courseName);
+                    course.setUid(user.getUid());
+                    course.setAmount(0);
+                    course.setIsComplete(0);
+                    courseMapper.insert(course);
+                }
+            }
+            System.out.println("===========================打开学习主页==========================");
             // 打开学习主页
             String reqFinal = "http://171.8.225.133/vls5s/vls3isapi2.dll/getfirstpage?ptopid="+user.getPtopId();
             String allclass = HttpClient.sendGet(reqFinal, null);
