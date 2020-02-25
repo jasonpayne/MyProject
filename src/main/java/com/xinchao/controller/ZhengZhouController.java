@@ -90,7 +90,6 @@ public class ZhengZhouController {
         }
     }
 
-
     /**
      * 一次性获取所有网考题（慎用）
      */
@@ -121,14 +120,20 @@ public class ZhengZhouController {
             }
             List<Examine> list = new ArrayList<>();
             for(int i = 0 ; i < jsonArray.size() ; i++) {
-                Examine examine = new Examine();
-                examine.setQuestId(jsonArray.getJSONObject(i).getString("id"));
-                examine.setQuestType(jsonArray.getJSONObject(i).getString("type"));
-                examine.setIsReply(0);
-                list.add(examine);
-                if (list.size() > 10000) {
-                    succeed = succeed + examineMapper.insertBatch(list);
-                    list.clear();
+                String questId = jsonArray.getJSONObject(i).getString("id");
+                Examine examineQuery = examineMapper.selectOne(questId);
+                if(null != examineQuery){
+                    continue;
+                }else {
+                    Examine examine = new Examine();
+                    examine.setQuestId(questId);
+                    examine.setQuestType(jsonArray.getJSONObject(i).getString("type"));
+                    examine.setIsReply(0);
+                    list.add(examine);
+                    if (list.size() > 10000) {
+                        succeed = succeed + examineMapper.insertBatch(list);
+                        list.clear();
+                    }
                 }
             }
             if (list.size() > 0) {
