@@ -50,7 +50,7 @@ public class ClazzServiceImpl implements ClazzService {
                 ptopId = nowUser.getPtopId();
                 String KeChengDetailUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+ptopId+"&keid="+model.getClzssId();
                 String KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
-                if(KeChengDetailHtml.contains("你的登录信息已经失效")){
+                if(KeChengDetailHtml.contains("你的登录信息已经失效")|| KeChengDetailHtml.equals("发送GET请求出现异常")){
                     ptopId = questionService.login(nowUser);
                     KeChengDetailUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+ptopId+"&keid="+model.getClzssId();
                     KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
@@ -69,7 +69,7 @@ public class ClazzServiceImpl implements ClazzService {
                     // 点进去做任务
                     String clazzUrl = "http://171.8.225.133/vls2s/vls3isapi.dll/kelista?ptopid="+ptopId+"&cid="+ model.getClzssId()+"&fun2=1";
                     String clazzHtml = HttpClient.sendGet(clazzUrl, null);
-                    if(clazzHtml.contains("你的登录信息已经失效")){
+                    if(clazzHtml.contains("你的登录信息已经失效")|| clazzHtml.equals("发送GET请求出现异常")){
                         ptopId = questionService.login(nowUser);
                         clazzUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/kelista?ptopid="+ptopId+"&cid="+ model.getClzssId()+"&fun2=1";
                         clazzHtml = HttpClient.sendGet(clazzUrl, null);

@@ -1,13 +1,11 @@
 package com.xinchao.utils;
 
+import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -30,10 +28,12 @@ public class HttpClient {
             // 打开和URL之间的连接
             URLConnection connection = realUrl.openConnection();
             // 设置通用的请求属性
-            connection.setRequestProperty("Cookie", cookieval);
+            if(StringUtils.isNotBlank(cookieval)){
+                connection.setRequestProperty("Cookie", cookieval);
+            }
             connection.setRequestProperty("accept", "*/*");
             connection.setRequestProperty("connection", "Keep-Alive");
-            connection.setRequestProperty("user-agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+            connection.setRequestProperty("user-agent", "Mozilla/5.0(Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.92 Safari/537.36");
             connection.setUseCaches(true);
             connection.setConnectTimeout(30000);
             connection.setReadTimeout(30000);
@@ -50,7 +50,7 @@ public class HttpClient {
             result = new String(getData, url.contains("http://222.22.63.178")?"UTF-8":"gb2312");
         } catch (Exception e) {
             System.out.println("发送GET请求出现异常！" + e);
-            return null;
+            return "发送GET请求出现异常";
         }
         // 使用finally块来关闭输入流
         finally {
@@ -94,25 +94,28 @@ public class HttpClient {
         try {
             URL realUrl = new URL(url);
             // 打开和URL之间的连接
-            URLConnection conn = realUrl.openConnection();
+            URLConnection connection = realUrl.openConnection();
             // 设置通用的请求属性
-            conn.setRequestProperty("accept", "*/*");
-            conn.setRequestProperty("connection", "Keep-Alive");
-            conn.setRequestProperty("user-agent",
-                    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+            if(StringUtils.isNotBlank(cookieval)){
+                connection.setRequestProperty("Cookie", cookieval);
+            }
+            connection.setRequestProperty("accept", "*/*");
+            connection.setRequestProperty("connection", "Keep-Alive");
+            connection.setRequestProperty("user-agent", "Mozilla/5.0(Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.92 Safari/537.36");
             // 发送POST请求必须设置如下两行
-            conn.setDoOutput(true);
-            conn.setDoInput(true);
-            conn.setConnectTimeout(30000);
-            conn.setReadTimeout(30000);
+            connection.setDoOutput(true);
+            connection.setDoInput(true);
+            connection.setConnectTimeout(30000);
+            connection.setReadTimeout(30000);
+            connection.connect();
             // 获取URLConnection对象对应的输出流
-            out = new PrintWriter(conn.getOutputStream());
+            out = new PrintWriter(connection.getOutputStream());
             // 发送请求参数
             out.print(param);
             // flush输出流的缓冲
             out.flush();
             // 定义BufferedReader输入流来读取URL的响应
-            InputStream inputStream = conn.getInputStream();
+            InputStream inputStream = connection.getInputStream();
             byte[] buffer = new byte[1024];
             int len = 0;
             bos = new ByteArrayOutputStream();
@@ -122,8 +125,8 @@ public class HttpClient {
             byte[] getData = bos.toByteArray();;     //获得网站的二进制数据
             result = new String(getData, "gb2312");
         } catch (Exception e) {
-            System.out.println("发送 POST 请求出现异常！" + e);
-            e.printStackTrace();
+            System.out.println("发送POST请求出现异常！" + e);
+            return "发送POST请求出现异常";
         }
         // 使用finally块来关闭输出流、输入流
         finally {
@@ -161,24 +164,6 @@ public class HttpClient {
             connection.connect();
             cookieval = connection.getHeaderField("set-cookie").split(";")[0];
             return cookieval;
-
-            /*InputStream is = connection.getInputStream();
-            reader = new BufferedReader(new InputStreamReader(is, DEF_CHATSET));
-            String strRead = null;
-            while ((strRead = reader.readLine()) != null) {
-                sb.append(strRead);
-            }
-            rs = sb.toString();*/
-            /*// 定义 BufferedReader输入流来读取URL的响应
-            InputStream inputStream = connection.getInputStream();
-            byte[] buffer = new byte[1024];
-            int len = 0;
-            bos = new ByteArrayOutputStream();
-            while((len = inputStream.read(buffer)) != -1) {
-                bos.write(buffer, 0, len);
-            }
-            byte[] getData = bos.toByteArray();;     //获得网站的二进制数据
-            result = new String(getData, "gb2312");*/
         } catch (Exception e) {
             System.out.println("发送GET请求出现异常！" + e);
             e.printStackTrace();

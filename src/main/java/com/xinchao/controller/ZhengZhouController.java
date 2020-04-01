@@ -18,7 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,21 +70,16 @@ public class ZhengZhouController {
             }else{
                 User loginInfo = userMapper.login(user);
                 if(null != loginInfo){
-                    if(loginInfo.getIsTest() == 0 || loginInfo.getIsClazz()==0){
-                        user.setPtopId(ptopId);
-                        userMapper.update(user);
-//                        register0(user);
-                        return "已经注册成功，正在操作，请稍等登陆查看";
-                    }else {
-                        return "已经注册成功，练习和答题已完成，请立即登陆查看";
-                    }
+                    user.setPtopId(ptopId);
+                    userMapper.update(user);
+                    return "已经注册成功，正在操作。" + register0(user);
                 }else{
                     // 插入系统，并且初始化数据
                     user.setPtopId(ptopId);
                     user.setIsClazz(0);
                     user.setIsTest(0);
                     userMapper.insert(user);
-                    return "刚刚注册成功，正在操作，请稍等登陆查看。"+register0(user);
+                    return "刚刚注册成功，正在操作，请稍等登陆查看。" + register0(user);
                 }
             }
         } catch (Exception e) {
@@ -146,6 +143,9 @@ public class ZhengZhouController {
         return succeed;
     }
 
+    /**
+     * 一次性获取所有网考题答案，按照题目类型分类获取答案（慎用）
+     */
     @RequestMapping(value = "/getExamineAnswer", method = RequestMethod.GET)
     public void getExamineAnswer() {
         try {
@@ -600,11 +600,31 @@ public class ZhengZhouController {
         }
     }
 
+    @RequestMapping(value = "/startTest", method = RequestMethod.GET)
+    public String startTest() {
+        List<Map<String,String>> list = new ArrayList<>();
+        try {
+            //发送 POST 请求登陆,注册已知课程
+            List<User> userList = userMapper.selectForList(new User());
+            for(User user : userList){
+                String ptopId = questionService.login(user);
+                if(StringUtils.isNotBlank(ptopId)) {
+                    Map<String,String> map = new HashMap<>();
+                    map.put(user.getUid(), register0(user));
+                    list.add(map);
+                }
+            }
+        } catch (Exception e) {
+            return e.getMessage();
+        }
+        return JSONObject.toJSONString(list);
+    }
+
     public String register0(User user) {
         try {
             String ptopId = null;
             System.out.println("===========================获取当前账号本学期所有需要考试课程==========================");
-            String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid="+user.getPtopId();
+            String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid=" + user.getPtopId();
             // 设置cookie
             HttpClient.sendGetNoRedirects(cookieUrl, null);
             String examinesUrl = "http://222.22.63.178/student/courseList";
@@ -646,12 +666,13 @@ public class ZhengZhouController {
                 reqFinal = "http://171.8.225.133/vls5s/vls3isapi2.dll/getfirstpage?ptopid="+ptopId;
                 allclass = HttpClient.sendGet(reqFinal, null);
             }
-            System.out.println("===========================本学期所有需要学习课程==========================");
+            System.out.println("===========================添加本学期听课列表==========================");
             List<String> keChengList = new ArrayList<String>();
             Pattern pattern = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
             /*if(allclass.contains("你应已修习")){
                 allclass = allclass.substring(0,allclass.indexOf("你应已修习"));
             }*/
+            // 听课
             Matcher matcher = pattern.matcher(allclass);
             while (matcher.find()) {
                 String r = matcher.group(1).replace("\"", "");
@@ -690,7 +711,7 @@ public class ZhengZhouController {
                 String testUrl = "http://171.8.225.170/vls2s/vls3isapi.dll/mygetonetest?ptopid=" + user.getPtopId() + "&keid=" + keCheng;
                 String testHtml = HttpClient.sendGet(testUrl, null);
                 // 测试
-                if(!testHtml.contains("有效自测题数量不足")){
+                if(!testHtml.contains("有效自测题数量不足") && !testHtml.contains("因此本课程的在线测试功能已对你关闭")){
                    sid = testHtml.substring(testHtml.indexOf("&sid=") + "&sid=".length(), testHtml.indexOf("&wheres="));
                    break;
                 }
@@ -737,7 +758,7 @@ public class ZhengZhouController {
                     break;
                 }
             }
-            if(null != testList && testList.size()>0){
+            if(null != testList && testList.size() > 0){
                 return "需要做"+testList.size()+"套测试题";
             }
         } catch (Exception e) {
