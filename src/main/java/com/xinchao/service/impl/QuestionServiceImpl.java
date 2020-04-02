@@ -262,7 +262,7 @@ public class QuestionServiceImpl implements QuestionService {
                     testUserMapper.update(model);
                 }
             }
-            return "已经打开"+count+"章节的题目\n";
+            return "已经打开"+count+"章节的题目";
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return e.getMessage();
@@ -332,9 +332,8 @@ public class QuestionServiceImpl implements QuestionService {
                     }
                 }
                 if(submitHtml.contains("抱歉")) {
-                    // TODO
-                }
-                if(submitHtml.contains("交卷操作成功完成")) {
+                    continue;
+                } else if(submitHtml.contains("交卷操作成功完成")) {
                     Matcher submitMatcher = compile("<font [^>]*>([^<]*)</font>").matcher(submitHtml);
                     Map<String,String> answerResultMap = new TreeMap<>();
                     while (submitMatcher.find()) {
@@ -407,20 +406,19 @@ public class QuestionServiceImpl implements QuestionService {
                     model.setIsSubmit(0);
                     if(score == 20){
                         model.setIsComplete(1);
-                        System.out.println("已经完成答题");
+                        System.out.println("提交了第"+ ++count +"章节测试，已经完成答题");
                     }else {
                         if(score + noAnswers == 20){
                             model.setIsComplete(2);
-                            System.out.println("当前:"+ score +"分，存在没有正确答案和多选题F以上的题目，暂停答题");
+                            System.out.println("提交了第"+ ++count +"章节测试，当前:"+ score +"分，存在没有正确答案和多选题F以上的题目，暂停答题");
                         }else {
-                            System.out.println("当前:"+ score +"分，需要继续答题");
+                            System.out.println("提交了第"+ ++count +"章节测试，当前:"+ score +"分，需要继续答题");
                         }
                     }
                     testUserMapper.update(model);
-                    System.out.println("提交了第"+ ++count +"章节测试");
                 }
             }
-            return "总计提交了"+ count +"章节的测试\n";
+            return "总计提交了"+ count +"章节的测试";
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return e.getMessage();

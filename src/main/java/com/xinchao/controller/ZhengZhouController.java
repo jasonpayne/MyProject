@@ -771,9 +771,9 @@ public class ZhengZhouController {
     @RequestMapping(value = "/openTest", method = RequestMethod.GET)
     public String openTest() {
         try {
-            String aa = questionService.openTest();
-            String bb = questionService.submitAnswer();
-            return aa+bb;
+            String openTest = questionService.openTest();
+            String submitAnswer = questionService.submitAnswer();
+            return openTest +"\\n"+ submitAnswer;
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return e.getMessage();
