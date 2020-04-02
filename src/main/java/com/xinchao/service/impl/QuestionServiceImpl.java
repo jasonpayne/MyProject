@@ -163,7 +163,7 @@ public class QuestionServiceImpl implements QuestionService {
             if(null == testList ||testList.size() == 0){
                 return "没有打开的题目";
             }
-
+            int count = 0;
             for (TestUser model : testList) {
                 User user = new User();
                 user.setUid(model.getUid());
@@ -244,27 +244,25 @@ public class QuestionServiceImpl implements QuestionService {
                     sb.append(str+",");
                 }
                 model.setQuests(sb.toString());
+                System.out.println("打开第"+ ++count +"测试章节");
             }
-            int count = 0;
             if(null != testList && testList.size() > 0){
                 // 答题需要延迟2分钟提交
-                int k = 1;
-                while (k < 5) {
-                    Thread.sleep(30100);
-                    System.out.println("等待中========================"+k);
-                    k++;
+                int k = 0;
+                while (k < 2) {
+                    Thread.sleep(60100);
+                    System.out.println("==========等待第("+ ++k +")个60秒==========");
                 }
                 for (TestUser model : testList) {
                     if(StringUtils.isBlank(model.getQuests())){
-                        testUserMapper.delete(model.getId());
+                        model.setIsComplete(-1);
                     }else{
-                        count ++;
                         model.setIsSubmit(1);
-                        testUserMapper.update(model);
                     }
+                    testUserMapper.update(model);
                 }
             }
-            return "已经打开"+count+"道题目";
+            return "已经打开"+count+"章节的题目\n";
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return e.getMessage();
@@ -282,6 +280,7 @@ public class QuestionServiceImpl implements QuestionService {
             if(null == testList ||testList.size() == 0) {
                 return "没有需要提交的测试";
             }
+            int count = 0;
             for (TestUser model : testList) {
                 List<String> questList = new ArrayList(Arrays.asList(model.getQuests().split(",")));
                 Answer zhangOld = new Answer();
@@ -418,15 +417,13 @@ public class QuestionServiceImpl implements QuestionService {
                         }
                     }
                     testUserMapper.update(model);
+                    System.out.println("提交了第"+ ++count +"章节测试");
                 }
             }
-            if(null != testList && testList.size() > 0) {
-                return "已经提交了"+testList.size()+"道测试";
-            }
+            return "总计提交了"+ count +"章节的测试\n";
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return e.getMessage();
         }
-        return null;
     }
 }
