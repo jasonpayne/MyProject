@@ -176,12 +176,14 @@ public class QuestionServiceImpl implements QuestionService {
                     testDetailUrl = "http://171.8.225.138/vls2s/vls3isapi.dll/testonce?ptopid=" + ptopId + "&zhang=" + model.getZhangId();
                     testDetailHtml = HttpClient.sendGet(testDetailUrl, null);
                 }
+                if(testDetailHtml.contains("测试题数量不够")){
+                    model.setIsComplete(-1);
+                    model.setQuests("测试题数量不够，不能进行在线测试");
+                    continue;
+                }
                 // 题目
-                Elements questElements = new Elements();
-                // 答案
-                Elements answerElements = new Elements();
                 Document document = Jsoup.parse(testDetailHtml);
-                questElements = document.select("td[width=100%]").select("td[bgcolor=#E6E6DF]").select("td[height=20]").
+                Elements questElements = document.select("td[width=100%]").select("td[bgcolor=#E6E6DF]").select("td[height=20]").
                         select("td:not(td[width=25%])").select("td:not(td[width=40%])").select("td:not(td[width=20%])");
                 List<String> questNameList = new ArrayList<>();
                 for(Element element : questElements){
@@ -190,8 +192,9 @@ public class QuestionServiceImpl implements QuestionService {
                         questNameList.add(str);
                     }
                 }
+                // 答案
                 List<String> answersNameList = new ArrayList<>();
-                answerElements = document.select("table[width=80%]").select("table:not(table[width=100%])").select("table:not(table[width=750])");
+                Elements answerElements = document.select("table[width=80%]").select("table:not(table[width=100%])").select("table:not(table[width=750])");
                 for(Element element : answerElements){
                     answersNameList.add(element.text());
                 }
@@ -238,12 +241,12 @@ public class QuestionServiceImpl implements QuestionService {
                     }
                     index ++;
                 }
-
                 StringBuilder sb = new StringBuilder ();
                 for (String str : questionSet){
                     sb.append(str+",");
                 }
                 model.setQuests(sb.toString());
+                model.setIsSubmit(1);
                 System.out.println("打开第"+ ++count +"测试章节");
             }
             if(null != testList && testList.size() > 0){
@@ -254,11 +257,6 @@ public class QuestionServiceImpl implements QuestionService {
                     System.out.println("==========等待第("+ ++k +")个60秒==========");
                 }
                 for (TestUser model : testList) {
-                    if(StringUtils.isBlank(model.getQuests())){
-                        model.setIsComplete(-1);
-                    }else{
-                        model.setIsSubmit(1);
-                    }
                     testUserMapper.update(model);
                 }
             }

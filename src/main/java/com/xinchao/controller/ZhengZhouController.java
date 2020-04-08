@@ -600,6 +600,10 @@ public class ZhengZhouController {
         }
     }
 
+    /**
+     * 全部账户增量注册所有测试和听课
+     * @return
+     */
     @RequestMapping(value = "/startTest", method = RequestMethod.GET)
     public String startTest() {
         List<Map<String,String>> list = new ArrayList<>();
@@ -690,15 +694,19 @@ public class ZhengZhouController {
                         }
                         Document document = Jsoup.parse(KeChengDetailHtml);
                         String text = document.body().text().trim();
-                        if(!text.contains("共10分，你已取得10分") && !text.contains("因库中无有效课件，你直接取得10分")
+                        if(/*!text.contains("共10分，你已取得10分") &&*/ !text.contains("因库中无有效课件，你直接取得10分")
                                 && !text.contains("因库中无有效课件，你直接取得10分") && !text.contains("点播课件不再计分")){
                             ClazzUser clazzUser = new ClazzUser();
                             clazzUser.setClzssId(keId);
                             clazzUser.setUid(user.getUid());
-                            String score = text.substring(text.indexOf("共10分，你已取得")+"共10分，你已取得".length(), text.indexOf("共10分，你已取得")+"共10分，你已取得".length()+1);
-                            System.out.println(user.getUid() + "==="+  user.getPw() + "==="+ keId+"========"+score);
-                            clazzUser.setScore(Integer.valueOf(score));
-                            clazzUser.setIsComplete(0);
+                            if(text.contains("共10分，你已取得10分")){
+                                clazzUser.setScore(10);
+                                clazzUser.setIsComplete(1);
+                            }else{
+                                String score = text.substring(text.indexOf("共10分，你已取得")+"共10分，你已取得".length(), text.indexOf("共10分，你已取得")+"共10分，你已取得".length()+1);
+                                clazzUser.setScore(Integer.valueOf(score));
+                                clazzUser.setIsComplete(0);
+                            }
                             clazzUserMapper.insertNotExist(clazzUser);
                         }
                     }
@@ -743,8 +751,6 @@ public class ZhengZhouController {
                         TestUser testUser = new TestUser();
                         testUser.setZhangId(ZhangId);
                         testUser.setUid(user.getUid());
-//                    testUser.setScore();//是多少就是多少！
-                        // TODO
                         testUser.setIsComplete(0);
                         testUser.setIsSubmit(0);
                         testUserMapper.insertNotExist(testUser);
