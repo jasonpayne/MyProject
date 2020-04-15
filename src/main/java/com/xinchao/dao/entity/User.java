@@ -27,9 +27,14 @@ public class User {
     private String ptopId;
 
     /**
-     * ruid
+     * 专业
      */
-    private String ruId;
+    private String major;
+
+    /**
+     * 年级（入学时间）
+     */
+    private String grade;
 
     /**
      * 是否上课完成。0:未完成；1:已完成

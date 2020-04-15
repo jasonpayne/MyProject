@@ -7,7 +7,8 @@
         <result column="uid" property="uid" />
         <result column="pw" property="pw" />
         <result column="ptop_id" property="ptopId" />
-        <result column="ru_id" property="ruId" />
+        <result column="major" property="major" />
+        <result column="grade" property="grade" />
         <result column="is_clazz" property="isClazz" />
         <result column="is_test" property="isTest" />
     </resultMap>
@@ -16,7 +17,8 @@
                 uid,
                 pw,
                 ptop_id,
-                ru_id,
+                major,
+                grade,
                 is_clazz,
                 is_test
     </sql>
@@ -31,8 +33,11 @@
         <if test="ptopId != null and ptopId != '' ">
             AND ptop_id = #{ptopId}
         </if>
-        <if test="ruId != null and ruId != '' ">
-            AND ru_id = #{ruId}
+        <if test="major != null and major != '' ">
+            AND major = #{major}
+        </if>
+        <if test="grade != null and grade != '' ">
+            AND grade = #{grade}
         </if>
         <if test="isClazz != null ">
             AND is_clazz = #{isClazz}
@@ -73,8 +78,11 @@
             <if test ='null != ptopId'>
                 ptop_id,
             </if>
-            <if test ='null != ruId'>
-                ru_id,
+            <if test ='null != major'>
+                major,
+            </if>
+            <if test ='null != grade'>
+                grade,
             </if>
             <if test ='null != isClazz'>
                 is_clazz,
@@ -93,8 +101,11 @@
             <if test ='null != ptopId'>
                 #{ptopId},
             </if>
-            <if test ='null != ruId'>
-                #{ruId},
+            <if test ='null != major'>
+                #{major},
+            </if>
+            <if test ='null != grade'>
+                #{grade},
             </if>
             <if test ='null != isClazz'>
                 #{isClazz},
@@ -109,7 +120,8 @@
         UPDATE user
         <set>
             <if test ='null != ptopId'>ptop_id = #{ptopId},</if>
-            <if test ='null != ruId'>ru_id = #{ruId},</if>
+            <if test ='null != major'>major = #{major},</if>
+            <if test ='null != grade'>grade = #{grade},</if>
             <if test ='null != isClazz'>is_clazz = #{isClazz},</if>
             <if test ='null != isTest'>is_test = #{isTest},</if>
         </set>

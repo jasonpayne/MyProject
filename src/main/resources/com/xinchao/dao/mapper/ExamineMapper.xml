@@ -64,8 +64,6 @@
         FROM examine
         WHERE 1 = 1
         <include refid="whereSQL" />
-        AND quest_type in
-        ("zuhe-3","zuhe-4","zuhe-5","zuhe-6")
     </select>
 
     <select id="selectOne" resultMap="ResultMap">

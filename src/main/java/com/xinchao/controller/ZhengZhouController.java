@@ -72,7 +72,7 @@ public class ZhengZhouController {
                 if(null != loginInfo){
                     user.setPtopId(ptopId);
                     userMapper.update(user);
-                    return "已经注册成功，正在操作。" + register0(user);
+                    return "已经注册成功，正在操作。" + register0(loginInfo);
                 }else{
                     // 插入系统，并且初始化数据
                     user.setPtopId(ptopId);
@@ -634,9 +634,7 @@ public class ZhengZhouController {
             String examinesUrl = "http://222.22.63.178/student/courseList";
             String examinesHtml = HttpClient.sendGet(examinesUrl, null);
             if(examinesHtml.contains("若忘记了密码，请联系你所在的学习中心")){
-                ptopId = questionService.login(user);
-                examinesUrl = "http://222.22.63.178/student/courseList";
-                examinesHtml = HttpClient.sendGet(examinesUrl, null);
+                return user.getUid()+"：密码错误";
             }
             Elements courseElements = new Elements();
             Document examineDocument = Jsoup.parse(examinesHtml);
@@ -669,6 +667,20 @@ public class ZhengZhouController {
                 ptopId = questionService.login(user);
                 reqFinal = "http://171.8.225.133/vls5s/vls3isapi2.dll/getfirstpage?ptopid="+ptopId;
                 allclass = HttpClient.sendGet(reqFinal, null);
+            }
+            // 设置专业 和 设置入学时间
+            if(StringUtils.isBlank(user.getMajor()) || StringUtils.isBlank(user.getGrade())){
+                Document allclassDocument = Jsoup.parse(allclass);
+                String allclassStr = allclassDocument.text().replace(" ","");
+                // 设置专业
+                String major = allclassStr.substring(allclassStr.lastIndexOf("你所学的专业是：")+ "你所学的专业是：".length(),
+                        allclassStr.lastIndexOf("；年级是："));
+                user.setMajor(major);
+                // 设置入学时间
+                String grade = allclassStr.substring(allclassStr.lastIndexOf("年级是：")+ "年级是：".length(),
+                        allclassStr.lastIndexOf("年级是：")+ "年级是：".length() + 5);
+                user.setGrade(grade);
+                userMapper.update(user);
             }
             System.out.println("===========================添加本学期听课列表==========================");
             List<String> keChengList = new ArrayList<String>();
@@ -819,6 +831,72 @@ public class ZhengZhouController {
                 questAnswerList.add(questAnswer);
             }
             return questAnswerList;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return e.getMessage();
+        }
+    }
+
+    /**
+     * 把answer里面的没有答案的，在examine里找一遍
+     * @return
+     */
+    @RequestMapping(value = "/answerBuild", method = RequestMethod.GET)
+    public Object answerBuild() {
+        try {
+            Answer answer = new Answer();
+            answer.setIsCorrect(2);
+            List<Answer> answerList = answerMapper.selectForList(answer);
+            for(Answer model : answerList){
+                String questName = model.getQuestName().substring(2);
+                String answersName = model.getAnswersName();
+                if(StringUtils.isBlank(questName)){
+                    continue;
+                }
+                Examine query = new Examine();
+                query.setQuestName(questName);
+                List<Examine> examineList = examineMapper.selectForList(query);
+                Examine examine = new Examine();
+                if(null==examineList || examineList.size() == 0 || null==examineList.get(0)){
+                    continue;
+                }
+                if(examineList.size() > 1){
+                    for(Examine examineQuery : examineList){
+                        if(examineQuery.getQuestName().equals(questName)){
+                            examine = examineQuery;
+                            break;
+                        }
+                    }
+                }else{
+                    examine = examineList.get(0);
+                }
+                if(StringUtils.isBlank(examine.getAnswersName())||StringUtils.isBlank(examine.getSubjAnswer())){
+                    continue;
+                }
+                String[] answersArr = examine.getAnswersName().split(";");
+                String[] subjArr = examine.getSubjAnswer().split("\\.");
+
+                /*List<Map<String,String>> list = new ArrayList<>();
+                Map<String,String> map = new HashMap<>();*/
+                List<String> list = new ArrayList<>();
+
+                for(int j=0;j<subjArr.length;j++) {
+                    for(int i=0;i<answersArr.length;i++) {
+                        if(subjArr[j].equals(answersArr[i].split("\\.")[0])){
+                            list.add(answersArr[i].split("\\.")[1]);
+                        }
+                    }
+                }
+                String newAnswers = "";
+                for(String str : list){
+                    if(answersName.contains(str)){
+                        newAnswers = newAnswers + answersName.substring(answersName.indexOf(str)-2,answersName.indexOf(str)-1)+",";
+                    }
+                }
+                model.setAnswers(newAnswers);
+                answerMapper.update(model);
+            }
+            return "完成";
         } catch (Exception e) {
             System.out.println(e.getMessage());
             return e.getMessage();
