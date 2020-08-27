@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.payne.school.dao.mapper.ClazzUserMapper">
+
+    <resultMap id="ResultMap" type="com.payne.school.dao.entity.ClazzUser" >
+        <result column="id" property="id" />
+        <result column="clzss_id" property="clzssId" />
+        <result column="uid" property="uid" />
+        <result column="score" property="score" />
+        <result column="is_complete" property="isComplete" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+                id,
+                clzss_id,
+                uid,
+                score,
+                is_complete
+    </sql>
+
+    <sql id="whereSQL">
+        <if test="clzssId != null and clzssId != '' ">
+            AND clzss_id = #{clzssId}
+        </if>
+        <if test="uid != null and uid != '' ">
+            AND uid = #{uid}
+        </if>
+        <if test="score != null ">
+            AND score = #{score}
+        </if>
+        <if test="isComplete != null ">
+            AND is_complete = #{isComplete}
+        </if>
+    </sql>
+
+    <select id="selectForList" resultMap="ResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM clazz_user
+        WHERE 1 = 1
+        <include refid="whereSQL" />
+    </select>
+
+    <select id="selectOne" resultMap="ResultMap" parameterType="com.payne.school.dao.entity.ClazzUser">
+        SELECT <include refid="Base_Column_List" />
+        FROM clazz_user
+        WHERE id = #{id}
+    </select>
+
+    <insert id="insertNotExist"  parameterType="com.payne.school.dao.entity.ClazzUser">
+        insert into clazz_user (clzss_id, uid, score, is_complete)
+        SELECT #{clzssId}, #{uid}, #{score}, #{isComplete} FROM DUAL
+        WHERE NOT EXISTS (SELECT id FROM clazz_user WHERE clzss_id = #{clzssId} AND uid = #{uid})
+    </insert>
+
+    <insert id="insert" parameterType="com.payne.school.dao.entity.ClazzUser">
+        REPLACE INTO clazz_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test ='null != clzssId'>
+                clzss_id,
+            </if>
+            <if test ='null != uid'>
+                uid,
+            </if>
+            <if test ='null != score'>
+                score,
+            </if>
+            <if test ='null != isComplete'>
+                is_complete
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test ='null != clzssId'>
+                #{clzssId},
+            </if>
+            <if test ='null != uid'>
+                #{uid},
+            </if>
+            <if test ='null != score'>
+                #{score},
+            </if>
+            <if test ='null != isComplete'>
+                #{isComplete}
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="com.payne.school.dao.entity.ClazzUser">
+        UPDATE clazz_user
+        <set>
+            <if test ='null != clzssId'>clzss_id = #{clzssId},</if>
+            <if test ='null != uid'>uid = #{uid},</if>
+            <if test ='null != score'>score = #{score},</if>
+            <if test ='null != isComplete'>is_complete = #{isComplete}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" >
+        DELETE FROM clazz_user
+        WHERE id = #{id}
+    </delete>
+
+</mapper>

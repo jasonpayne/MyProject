@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.payne.school.dao.mapper.ExamineMapper">
+
+    <resultMap id="ResultMap" type="com.payne.school.dao.entity.Examine" >
+        <result column="id" property="id" />
+        <result column="quest_id" property="questId" />
+        <result column="ke_id" property="keId" />
+        <result column="quest_name" property="questName" />
+        <result column="answers_name" property="answersName" />
+        <result column="obj_answer" property="objAnswer" />
+        <result column="subj_answer" property="subjAnswer" />
+        <result column="quest_type" property="questType" />
+        <result column="is_reply" property="isReply" />
+        <result column="uid" property="uid" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+                id,
+                quest_id,
+                ke_id,
+                quest_name,
+                answers_name,
+                obj_answer,
+                subj_answer,
+                quest_type,
+                is_reply,
+                uid
+    </sql>
+
+    <sql id="whereSQL">
+        <if test="questId != null and questId != '' ">
+            AND quest_id = #{questId}
+        </if>
+        <if test="keId != null and keId != '' ">
+            AND ke_id = #{keId}
+        </if>
+        <if test="questName != null and questName != '' ">
+            AND quest_name like concat('%', #{questName}, '%')
+        </if>
+        <if test="answersName != null and answersName != '' ">
+            AND answers_name = #{answersName}
+        </if>
+        <if test="objAnswer != null and objAnswer != '' ">
+            AND obj_answer = #{objAnswer}
+        </if>
+        <if test="subjAnswer != null and subjAnswer != '' ">
+            AND subj_answer = #{subjAnswer}
+        </if>
+        <if test="questType != null and questType != '' ">
+            AND quest_type = #{questType}
+        </if>
+        <if test="isReply != null ">
+            AND is_reply = #{isReply}
+        </if>
+        <if test="uid != null and uid != '' ">
+            AND uid = #{uid}
+        </if>
+    </sql>
+
+    <select id="selectForList" resultMap="ResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM examine
+        WHERE 1 = 1
+        <include refid="whereSQL" />
+    </select>
+
+    <select id="selectOne" resultMap="ResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM examine
+        WHERE quest_id = #{questId}
+    </select>
+
+    <insert id="insertBatch" parameterType="com.payne.school.dao.entity.Examine">
+        insert into examine (quest_id, quest_type, is_reply) values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.questId}, #{item.questType}, #{item.isReply})
+        </foreach>
+    </insert>
+
+    <insert id="insert" parameterType="com.payne.school.dao.entity.Examine">
+        INSERT INTO examine
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test ='null != questId'>
+                quest_id,
+            </if>
+            <if test ='null != keId'>
+                ke_id,
+            </if>
+            <if test ='null != questName'>
+                quest_name,
+            </if>
+            <if test ='null != answersName'>
+                answers_name,
+            </if>
+            <if test ='null != objAnswer'>
+                obj_answer,
+            </if>
+            <if test ='null != subjAnswer'>
+                subj_answer,
+            </if>
+            <if test ='null != questType'>
+                quest_type,
+            </if>
+            <if test ='null != isReply'>
+                is_reply,
+            </if>
+            <if test ='null != uid'>
+                uid
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test ='null != questId'>
+                #{questId},
+            </if>
+            <if test ='null != keId'>
+                #{keId},
+            </if>
+            <if test ='null != questName'>
+                #{questName},
+            </if>
+            <if test ='null != answersName'>
+                #{answersName},
+            </if>
+            <if test ='null != objAnswer'>
+                #{objAnswer},
+            </if>
+            <if test ='null != subjAnswer'>
+                #{subjAnswer},
+            </if>
+            <if test ='null != questType'>
+                #{questType},
+            </if>
+            <if test ='null != isReply'>
+                #{isReply},
+            </if>
+            <if test ='null != uid'>
+                #{uid}
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="com.payne.school.dao.entity.Examine">
+        UPDATE examine
+        <set>
+            <if test ="null != questId">quest_id = #{questId},</if>
+            <if test ="null != keId">ke_id = #{keId},</if>
+            <if test ="null != questName and questName !=''">quest_name = #{questName},</if>
+            <if test ="null != answersName and answersName !=''">answers_name = #{answersName},</if>
+            <if test ="null != objAnswer and objAnswer !=''">obj_answer = #{objAnswer},</if>
+            <if test ="null != subjAnswer and subjAnswer !=''">subj_answer = #{subjAnswer},</if>
+            <if test ="null != questType">quest_type = #{questType},</if>
+            <if test ="null != isReply">is_reply = #{isReply},</if>
+            <if test ="null != uid">uid = #{uid}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+</mapper>
