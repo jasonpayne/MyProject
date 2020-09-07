@@ -3,17 +3,17 @@ eureka:
     serviceUrl:
       defaultZone: http://localhost:29998/eureka/
   instance:
-    appname: template-gateway
+    appname: easy-edu
     prefer-ip-address: false
     lease-renewal-interval-in-seconds: 60
     lease-expiration-duration-in-seconds: 60
 server:
-  port: 19014
+  port: 8080
   use-forward-headers: true
 
 logging:
   path: ./logs
-#  config: classpath:logback-spring.xml
+  config: classpath:logback-spring.xml
 
 spring:
   application:
