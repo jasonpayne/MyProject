@@ -1,25 +1,34 @@
 package com.payne.shop.utils;
 
+import com.alibaba.druid.util.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.springframework.util.Base64Utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class HttpClient {
+public class HttpClientTest {
 
     String cookieval = null;
 
     public String sendGet(String url, String param) {
+//
+//        HttpClient httpClient = new HttpClient();
+//        httpClient.getHostConfiguration().setProxy("192.168.101.1", 5608);
+//        httpClient.getParams().setAuthenticationPreemptive(true);
+////如果代理需要密码验证，这里设置用户名密码
+//        httpClient.getState().setProxyCredentials(AuthScope.ANY, new UsernamePasswordCredentials("llying.iteye.com","llying"));
+
+
         String result = "";
         ByteArrayOutputStream bos = null;
         try {
@@ -28,12 +37,28 @@ public class HttpClient {
                 urlNameString = "?" + param;
             }
             URL realUrl = new URL(urlNameString);
+
+            /*// 创建代理服务器
+            InetSocketAddress addr = new InetSocketAddress("40.73.34.218",20000);
+            Proxy proxy = new Proxy(Proxy.Type.HTTP, addr); // http 代理
+
             // 打开和URL之间的连接
+            URLConnection connection = realUrl.openConnection(proxy);
+
+            //以下三行是在需要验证时，输入帐号密码信息
+            String headerkey = "Proxy-Authorization";
+            String headerValue = "Basic "+ Base64Utils.encodeToString(":tgy-ss-server".getBytes()); //帐号密码用:隔开，base64加密方式
+            connection.setRequestProperty(headerkey, headerValue);*/
+
+
             URLConnection connection = realUrl.openConnection();
+
             // 设置通用的请求属性
             if(StringUtils.isNotBlank(cookieval)){
                 connection.setRequestProperty("Cookie", cookieval);
             }
+
+
             connection.setRequestProperty("accept", "*/*");
             connection.setRequestProperty("connection", "Keep-Alive");
             connection.setRequestProperty("user-agent", "Mozilla/5.0(Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.92 Safari/537.36");
