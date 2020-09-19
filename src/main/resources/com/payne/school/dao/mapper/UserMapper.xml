@@ -4,6 +4,7 @@
 <mapper namespace="com.payne.school.dao.mapper.UserMapper">
 
     <resultMap id="ResultMap" type="com.payne.school.dao.entity.User" >
+        <result column="name" property="name" />
         <result column="uid" property="uid" />
         <result column="pw" property="pw" />
         <result column="ptop_id" property="ptopId" />
@@ -14,6 +15,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
+                name,
                 uid,
                 pw,
                 ptop_id,
@@ -24,6 +26,9 @@
     </sql>
 
     <sql id="whereSQL">
+        <if test="name != null and name != '' ">
+            AND name = #{name}
+        </if>
         <if test="uid != null and uid != '' ">
             AND uid = #{uid}
         </if>
@@ -69,6 +74,9 @@
     <insert id="insert" parameterType="com.payne.school.dao.entity.User">
         INSERT INTO user
         <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test ='null != name'>
+                name,
+            </if>
             <if test ='null != uid'>
                 uid,
             </if>
@@ -92,6 +100,9 @@
             </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test ='null != name'>
+                #{name},
+            </if>
             <if test ='null != uid'>
                 #{uid},
             </if>
@@ -119,6 +130,7 @@
     <update id="update" parameterType="com.payne.school.dao.entity.User">
         UPDATE user
         <set>
+            <if test ='null != name'>name = #{name},</if>
             <if test ='null != ptopId'>ptop_id = #{ptopId},</if>
             <if test ='null != major'>major = #{major},</if>
             <if test ='null != grade'>grade = #{grade},</if>

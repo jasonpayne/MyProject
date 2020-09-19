@@ -32,10 +32,10 @@ public class ClazzServiceImpl implements ClazzService {
 
     @Override
     public String listenClazz() {
-        // 进去那个页面(测试和测试主页列表)  http://171.8.225.133/vls5s/vls3isapi2.dll/lookonecourse?
+        // 进去那个页面(测试和测试主页列表)  http://171.8.225.170/vls5s/vls3isapi2.dll/lookonecourse?
         // ptopid=2B23987523F14866B116D23090D25C18&keid=7312
 
-        // 进入听课列表里面  http://171.8.225.133/vls2s/vls3isapi.dll/kelista?
+        // 进入听课列表里面  http://171.8.225.170/vls2s/vls3isapi.dll/kelista?
         // ptopid=2B23987523F14866B116D23090D25C18&ruid=132012599733&cid=7310&fun2=1
         try {
             ClazzUser clazzUser = new ClazzUser();
@@ -47,11 +47,11 @@ public class ClazzServiceImpl implements ClazzService {
                 user.setUid(model.getUid());
                 User nowUser = userMapper.selectOne(user);
                 ptopId = nowUser.getPtopId();
-                String KeChengDetailUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+ptopId+"&keid="+model.getClzssId();
+                String KeChengDetailUrl = "http://171.8.225.170/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+ptopId+"&keid="+model.getClzssId();
                 String KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
                 if(KeChengDetailHtml.contains("你的登录信息已经失效")|| KeChengDetailHtml.equals("发送GET请求出现异常")){
                     ptopId = questionService.login(nowUser);
-                    KeChengDetailUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+ptopId+"&keid="+model.getClzssId();
+                    KeChengDetailUrl = "http://171.8.225.170/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+ptopId+"&keid="+model.getClzssId();
                     KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
                 }
                 Document document = Jsoup.parse(KeChengDetailHtml);
@@ -66,11 +66,11 @@ public class ClazzServiceImpl implements ClazzService {
                     model.setScore(Integer.valueOf(score));
                     clazzUserMapper.update(model);
                     // 点进去做任务
-                    String clazzUrl = "http://171.8.225.133/vls2s/vls3isapi.dll/kelista?ptopid="+ptopId+"&cid="+ model.getClzssId()+"&fun2=1";
+                    String clazzUrl = "http://171.8.225.170/vls2s/vls3isapi.dll/kelista?ptopid="+ptopId+"&cid="+ model.getClzssId()+"&fun2=1";
                     String clazzHtml = HttpClient.sendGet(clazzUrl, null);
                     if(clazzHtml.contains("你的登录信息已经失效")|| clazzHtml.equals("发送GET请求出现异常")){
                         ptopId = questionService.login(nowUser);
-                        clazzUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/kelista?ptopid="+ptopId+"&cid="+ model.getClzssId()+"&fun2=1";
+                        clazzUrl = "http://171.8.225.170/vls5s/vls3isapi2.dll/kelista?ptopid="+ptopId+"&cid="+ model.getClzssId()+"&fun2=1";
                         clazzHtml = HttpClient.sendGet(clazzUrl, null);
                     }
                     if(clazzHtml.contains("对不起，本系统目前尚未提供此功能")){

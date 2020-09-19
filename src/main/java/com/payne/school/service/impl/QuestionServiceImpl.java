@@ -30,7 +30,7 @@ import static java.util.regex.Pattern.compile;
  * 实现通用方法
  * @author xinchao.pan
  * @date 2020/02/04
- * http://171.8.225.133/
+ * http://171.8.225.170/
  */
 @Service
 public class QuestionServiceImpl implements QuestionService {
@@ -44,10 +44,11 @@ public class QuestionServiceImpl implements QuestionService {
     @Autowired
     TestUserMapper testUserMapper;
 
-    private static final String denglu = "http://202.196.64.120/vls2s/zzjlogin.dll/login";
+//    private static final String denglu = "http://202.196.64.120/vls2s/zzjlogin.dll/login";
+    private static final String denglu = "http://171.8.225.125/sss/zzjlogin.dll/login";
 
     //    private static final String kecheng = "http://123.15.57.74/vls5s/vls3isapi2.dll/";
-    private static final String kecheng = "http://171.8.225.133/vls5s/vls3isapi2.dll/";
+    private static final String kecheng = "http://171.8.225.170/vls5s/vls3isapi2.dll/";
 
     com.payne.school.utils.HttpClient HttpClient = new HttpClient();
 
@@ -59,7 +60,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public String login(User user){
         String loginHtml = HttpClient.sendPost(denglu, "uid="+user.getUid()+"&pw="+user.getPw());
-        if(loginHtml.contains("你无法进入系统")) {
+        if(loginHtml.contains("你无法进入系统") || loginHtml.contains("发送POST请求出现异常")) {
             return null;
         }else {
             String ptopId = loginHtml.substring(loginHtml.indexOf("ptopid=") + "ptopid=".length(), loginHtml.indexOf("&sid="));

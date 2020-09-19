@@ -54,7 +54,7 @@
         FROM test_user
         WHERE 1 = 1
         <include refid="whereSQL" />
---         limit 1000
+        limit 120
     </select>
 
     <select id="selectOne" resultMap="ResultMap" parameterType="com.payne.school.dao.entity.TestUser">

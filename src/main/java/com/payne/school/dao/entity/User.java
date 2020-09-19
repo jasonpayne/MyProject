@@ -12,6 +12,11 @@ public class User {
     private static final long serialVersionUID = 1L;
 
     /**
+     * 姓名
+     */
+    private String name;
+
+    /**
      * 账户
      */
     private String uid;

@@ -89,6 +89,42 @@ public class ZhengZhouController {
         }
     }
 
+    @RequestMapping(value = "/register/batch", method = RequestMethod.GET)
+    public List<String> registerBatch(@RequestBody List<String> users) {
+        List<String> result = new ArrayList<>();
+        for(String info : users){
+            User user = new User();
+            String[] arr = info.split(":");
+            user.setName(arr[0]);
+            user.setUid(arr[1]);
+            user.setPw(arr[2]);
+            try {
+                //发送 POST 请求登陆,注册已知课程
+                String ptopId = questionService.login(user);
+                if(ptopId == null) {
+                    result.add(info + "==>对不起，你输入的账号和密码未通过系统的验证。");
+                }else{
+                    User loginInfo = userMapper.login(user);
+                    if(null != loginInfo){
+                        user.setPtopId(ptopId);
+                        userMapper.update(user);
+                        result.add(info + "==>已经注册成功，正在操作。" + register0(loginInfo));
+                    }else{
+                        // 插入系统，并且初始化数据
+                        user.setPtopId(ptopId);
+                        user.setIsClazz(0);
+                        user.setIsTest(0);
+                        userMapper.insert(user);
+                        result.add(info + "==>刚刚注册成功，正在操作，请稍等登陆查看。" + register0(user));
+                    }
+                }
+            } catch (Exception e) {
+                result.add(info + "==>注册失败，异常原因。" + e.getMessage());
+            }
+        }
+        return result;
+    }
+
     /**
      * 一次性获取所有网考题（慎用）
      */
@@ -663,11 +699,11 @@ public class ZhengZhouController {
             }
             System.out.println("===========================打开学习主页==========================");
             // 打开学习主页
-            String reqFinal = "http://171.8.225.133/vls5s/vls3isapi2.dll/getfirstpage?ptopid="+user.getPtopId();
+            String reqFinal = "http://171.8.225.170/vls5s/vls3isapi2.dll/getfirstpage?ptopid="+user.getPtopId();
             String allclass = HttpClient.sendGet(reqFinal, null);
             if(allclass.contains("你的登录信息已经失效")){
                 ptopId = questionService.login(user);
-                reqFinal = "http://171.8.225.133/vls5s/vls3isapi2.dll/getfirstpage?ptopid="+ptopId;
+                reqFinal = "http://171.8.225.170/vls5s/vls3isapi2.dll/getfirstpage?ptopid="+ptopId;
                 allclass = HttpClient.sendGet(reqFinal, null);
             }
             // 设置专业 和 设置入学时间
@@ -699,11 +735,11 @@ public class ZhengZhouController {
                     if (!keId.equals("0027") && !keId.equals("9011")){
                         keChengList.add(keId);
                         // 听课
-                        String KeChengDetailUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+user.getPtopId()+"&keid="+keId;
+                        String KeChengDetailUrl = "http://171.8.225.170/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+user.getPtopId()+"&keid="+keId;
                         String KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
                         if(KeChengDetailHtml.contains("你的登录信息已经失效")){
                             ptopId = questionService.login(user);
-                            KeChengDetailUrl = "http://171.8.225.133/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+ptopId+"&keid="+keId;
+                            KeChengDetailUrl = "http://171.8.225.170/vls5s/vls3isapi2.dll/lookonecourse?ptopid="+ptopId+"&keid="+keId;
                             KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
                         }
                         Document document = Jsoup.parse(KeChengDetailHtml);
