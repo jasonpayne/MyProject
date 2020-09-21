@@ -1,32 +1,19 @@
 package com.payne.shop.controller;
 
 
-import com.payne.school.dao.mapper.*;
-
-import com.payne.school.service.QuestionService;
-import com.payne.shop.utils.HttpClientTest;
-import org.apache.commons.lang.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import cn.wanghaomiao.xpath.model.JXDocument;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.payne.school.dao.mapper.UserMapper;
+import com.payne.shop.utils.HttpClientShop;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import static java.util.regex.Pattern.compile;
 
 /**
- * QuestionController 测试
+ * ShopController 测试
  *
  * @author xinchao.pan 2020-02-04
  */
@@ -37,32 +24,84 @@ public class ShopController {
     @Autowired
     UserMapper userMapper;
 
-    HttpClientTest HttpClient = new HttpClientTest();
+    HttpClientShop HttpClient = new HttpClientShop();
 
-    @RequestMapping(value = "/getTrack", method = RequestMethod.GET)
-    public String register() {
-        try {
-            /*String examineDetailUrl = "http://www2.ocsworldwide.net/ExpTracking/cwbCheck.php?cwbno=37013035953";
-            String examineDetailHtml = HttpClient.sendGet(examineDetailUrl, null);
-            String examineDetailUrl2 = "https://www.saqura-web.com/SBS_LTRC/?number01=37013035953";
-            String examineDetailHtml2 = HttpClient.sendGet(examineDetailUrl2, null);
-
-            Document document = Jsoup.parse(examineDetailHtml);
-            Document document2 = Jsoup.parse(examineDetailHtml2);*/
-
-            String examineDetailUrl = "http://www2.ocsworldwide.net/ExpTracking/cwbCheck.php?cwbno=37013061120";
-            String examineDetailHtml = HttpClient.sendGet(examineDetailUrl, null);
-            String examineDetailUrl2 = "http://k2k.sagawa-exp.co.jp/cgi-bin/mall.mmcgi?oku01=8201048564";
-            String examineDetailHtml2 = HttpClient.sendGet(examineDetailUrl2, null);
-
-            Document document = Jsoup.parse(examineDetailHtml);
-            Document document2 = Jsoup.parse(examineDetailHtml2);
-
-
-        } catch (Exception e) {
-            return e.getMessage();
-        }
+    /**
+     * // TODO
+     * 登陆
+     *
+     * @param jSONObject
+     * @return
+     */
+    @RequestMapping(value = "/loginTest", method = RequestMethod.POST)
+    @ResponseBody
+    public List<String> loginTest(@RequestBody JSONObject jSONObject) {
+        String LoginQuery = "https://login.yahoo.co.jp/config/login";
+        String LoginParam = "login=" + "zhuangqing1005" + "&passwd=" + "langgan112233*";
+        String LoginHtml = HttpClient.sendPostForLogin(LoginQuery, LoginParam, "UTF-8");
         return null;
+    }
+
+    /**
+     * 登陆
+     *
+     * @param jSONObject
+     * @return
+     */
+    @RequestMapping(value = "/login", method = RequestMethod.POST)
+    @ResponseBody
+    public List<String> login(@RequestBody JSONObject jSONObject) {
+        String loginUrl = "https://login.bizmanager.yahoo.co.jp/yidlogin.php?.scrumb=4iCpV5j5Wvv&.done=https%3a%2f%2fpro.store.yahoo.co.jp%2fpro.pp-shop";
+        String loginHtml = HttpClient.sendGetForLogin(loginUrl, null, "utf-8");
+        return null;
+    }
+
+    /**
+     * 快递更新信息
+     *
+     * @param jSONObject
+     * @return
+     */
+    @RequestMapping(value = "/getTrack", method = RequestMethod.POST)
+    @ResponseBody
+    public List<String> getTrack(@RequestBody JSONObject jSONObject) {
+        List<String> list = new ArrayList<>();
+        JSONArray postIds = jSONObject.getJSONArray("postIds");
+        for (Object postId : postIds) {
+            try {
+                String ocsInfoUrl = "http://www2.ocsworldwide.net/ExpTracking/cwbCheck.php?cwbno=" + postId;
+                String ocsInfoHtml = HttpClient.sendGet(ocsInfoUrl, null, "UTF-8");
+                JXDocument jxDocument = new JXDocument(ocsInfoHtml);
+                List<Object> rs = jxDocument.sel("//head/meta/@CONTENT");
+                String url = String.valueOf(rs.get(0));
+                if (url.contains("sagawa-exp")) { //佐川转运
+                    url = url.substring(url.indexOf("http://"));
+                    // String url = "http://k2k.sagawa-exp.co.jp/cgi-bin/mall.mmcgi?oku01=8201048564";
+                    String zcHtml = HttpClient.sendGet(url, null, "Shift_JIS");
+                    JXDocument jxDocumentZc = new JXDocument(zcHtml);
+                    List<Object> rs1 = jxDocumentZc.sel("//body/table/tbody/tr");
+                    JXDocument jxDocumentZc2 = new JXDocument(rs1.get(1).toString());
+                    List<Object> rs3 = jxDocumentZc2.sel("//table/tbody/tr/td[@class='ichiran-fg ichiran-fg-msrc2-2']/text()");
+                    String code = rs3.get(0).toString();
+                    String date = rs3.get(1).toString().replace("年", "/").replace("月", "/").replace("日", "");
+                    list.add(postId.toString() + "--" + date + "--" + code + "--" + "佐川转运");
+                } else if (url.contains("SBS_LTRC")) { // SBS转运
+                    /*url = url.substring(url.indexOf("https://"));
+                    String zcHtml = HttpClient.sendGet(url, null);
+                    JXDocument jxDocumentZc = new JXDocument(zcHtml);*/
+                    list.add(postId.toString() + "--XXXX-XX-XX--" + postId.toString() + "--" + "SBS转运");
+                } else if (url.contains("ocs")) { // ocs
+                    /*url = url.substring(url.indexOf("https://"));
+                    String zcHtml = HttpClient.sendGet(url, null,"UTF-8");
+                    JXDocument jxDocumentZc = new JXDocument(zcHtml);*/
+                    list.add(postId.toString() + "--XXXX-XX-XX--" + postId.toString() + "--" + "ocs自运");
+                }
+            } catch (Exception e) {
+                list.add(postId.toString() + "未查到" + e.getMessage());
+                continue;
+            }
+        }
+        return list;
     }
 
 
