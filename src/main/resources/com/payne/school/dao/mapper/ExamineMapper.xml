@@ -7,6 +7,7 @@
         <result column="id" property="id" />
         <result column="quest_id" property="questId" />
         <result column="ke_id" property="keId" />
+        <result column="ke_name" property="keName" />
         <result column="quest_name" property="questName" />
         <result column="answers_name" property="answersName" />
         <result column="obj_answer" property="objAnswer" />
@@ -20,6 +21,7 @@
                 id,
                 quest_id,
                 ke_id,
+                ke_name,
                 quest_name,
                 answers_name,
                 obj_answer,
@@ -35,6 +37,9 @@
         </if>
         <if test="keId != null and keId != '' ">
             AND ke_id = #{keId}
+        </if>
+        <if test="keName != null and keName != '' ">
+            AND ke_name = #{keName}
         </if>
         <if test="questName != null and questName != '' ">
             AND quest_name like concat('%', #{questName}, '%')
@@ -88,6 +93,9 @@
             <if test ='null != keId'>
                 ke_id,
             </if>
+            <if test ='null != keName and keName !=""'>
+                ke_name,
+            </if>
             <if test ='null != questName'>
                 quest_name,
             </if>
@@ -116,6 +124,9 @@
             </if>
             <if test ='null != keId'>
                 #{keId},
+            </if>
+            <if test ='null != keName and keName !=""'>
+                #{keName},
             </if>
             <if test ='null != questName'>
                 #{questName},
@@ -146,6 +157,7 @@
         <set>
             <if test ="null != questId">quest_id = #{questId},</if>
             <if test ="null != keId">ke_id = #{keId},</if>
+            <if test ="null != keName and keName !=''">ke_name = #{keName},</if>
             <if test ="null != questName and questName !=''">quest_name = #{questName},</if>
             <if test ="null != answersName and answersName !=''">answers_name = #{answersName},</if>
             <if test ="null != objAnswer and objAnswer !=''">obj_answer = #{objAnswer},</if>

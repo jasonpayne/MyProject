@@ -20,17 +20,14 @@ import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.util.regex.Pattern.compile;
 
 /**
- * QuestionController 测试
+ * SchoolController 测试
  *
  * @author xinchao.pan 2020-02-04
  */
@@ -127,6 +124,225 @@ public class ZhengZhouController {
         return result;
     }
 
+    public String register0(User user) {
+        try {
+            String ptopId = null;
+            System.out.println("===========================获取当前账号本学期所有需要考试课程==========================");
+            String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid=" + user.getPtopId();
+            // 设置cookie
+            HttpClient.sendGetNoRedirects(cookieUrl, null);
+            String examinesUrl = "http://222.22.63.178/student/courseList";
+            String examinesHtml = HttpClient.sendGet(examinesUrl, null);
+            if (examinesHtml.contains("若忘记了密码，请联系你所在的学习中心")) {
+                return user.getUid() + "：密码错误";
+            }
+            Elements courseElements = new Elements();
+            Document examineDocument = Jsoup.parse(examinesHtml);
+            courseElements = examineDocument.select("li[class=class-list-li]");
+            for (Element courseElement : courseElements) {
+                String courseName = courseElement.select("p[class=text_center class-name float-l]").text();
+                String courseUrl = courseElement.select("a[href]").attr("href");
+                String courseId = courseUrl.substring(courseUrl.length() - 4);
+                Course query = courseMapper.selectOne(courseId);
+                if (null != query) {
+                    if (!query.getUid().equals(user.getUid())) {
+                        query.setUid(user.getUid());
+                        courseMapper.update(query);
+                    }
+                } else {
+                    Course course = new Course();
+                    course.setKeId(courseId);
+                    course.setKeName(courseName);
+                    course.setUid(user.getUid());
+                    course.setAmount(0);
+                    course.setIsComplete(0);
+                    courseMapper.insert(course);
+                }
+            }
+
+            System.out.println("===========================打开学习主页==========================");
+            // 打开学习主页
+            String reqFinal = "http://171.8.225.170/vls5s/vls3isapi2.dll/getfirstpage?ptopid=" + user.getPtopId();
+            String allclass = HttpClient.sendGet(reqFinal, null);
+            if (allclass.contains("你的登录信息已经失效")) {
+                ptopId = questionService.login(user);
+                reqFinal = "http://171.8.225.170/vls5s/vls3isapi2.dll/getfirstpage?ptopid=" + ptopId;
+                allclass = HttpClient.sendGet(reqFinal, null);
+            }
+            // 设置专业 和 设置入学时间
+            if (StringUtils.isBlank(user.getMajor()) || StringUtils.isBlank(user.getGrade())) {
+                Document allclassDocument = Jsoup.parse(allclass);
+                String allclassStr = allclassDocument.text().replace(" ", "");
+                // 设置专业
+                String major = allclassStr.substring(allclassStr.lastIndexOf("你所学的专业是：") + "你所学的专业是：".length(),
+                        allclassStr.lastIndexOf("；年级是："));
+                user.setMajor(major);
+                // 设置入学时间
+                String grade = allclassStr.substring(allclassStr.lastIndexOf("年级是：") + "年级是：".length(),
+                        allclassStr.lastIndexOf("年级是：") + "年级是：".length() + 5);
+                user.setGrade(grade);
+                userMapper.update(user);
+            }
+            System.out.println("===========================添加本学期听课列表==========================");
+            List<String> keChengList = new ArrayList<>();
+            Pattern pattern = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
+            /*if(allclass.contains("你应已修习")){
+                allclass = allclass.substring(0,allclass.indexOf("你应已修习"));
+            }*/
+            List<String> classList = new ArrayList<>();
+            List<String> testList = new ArrayList<>();
+            // 听课
+            Matcher matcher = pattern.matcher(allclass);
+            String info = "";
+            while (matcher.find()) {
+                String r = matcher.group(1).replace("\"", "");
+                if (r.contains("lookonecourse")) {
+                    String keId = r.substring(r.indexOf("keid=") + "keid=".length());
+                    if (!keId.equals("0027") && !keId.equals("9011")) {
+                        keChengList.add(keId);
+                        String KeChengDetailUrl = "http://171.8.225.170/vls5s/vls3isapi2.dll/lookonecourse?ptopid=" + user.getPtopId() + "&keid=" + keId;
+                        String KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
+                        if (KeChengDetailHtml.contains("你的登录信息已经失效")) {
+                            ptopId = questionService.login(user);
+                            KeChengDetailUrl = "http://171.8.225.170/vls5s/vls3isapi2.dll/lookonecourse?ptopid=" + ptopId + "&keid=" + keId;
+                            KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
+                        }
+                        String ruid = KeChengDetailHtml.substring(KeChengDetailHtml.indexOf("&ruid=") + "&ruid=".length(), KeChengDetailHtml.indexOf("&cid="));
+                        Document document = Jsoup.parse(KeChengDetailHtml);
+                        String text = document.body().text().trim();
+                        // 听课
+                        if (/*!text.contains("共10分，你已取得10分") &&*/ !text.contains("因库中无有效课件，你直接取得10分")
+                                && !text.contains("因库中无有效课件，你直接取得10分") && !text.contains("点播课件不再计分")) {
+                            ClazzUser clazzUser = new ClazzUser();
+                            clazzUser.setClzssId(keId);
+                            clazzUser.setUid(user.getUid());
+                            if (text.contains("共10分，你已取得10分")) {
+                                clazzUser.setScore(10);
+                                clazzUser.setIsComplete(1);
+                            } else {
+                                String score = text.substring(text.indexOf("共10分，你已取得") + "共10分，你已取得".length(), text.indexOf("共10分，你已取得") + "共10分，你已取得".length() + 1);
+                                clazzUser.setScore(Integer.valueOf(score));
+                                clazzUser.setIsComplete(0);
+                            }
+                            clazzUserMapper.insertNotExist(clazzUser);
+                            classList.add(keId);
+                        }
+                        // 练习
+                        String testUrl = "http://171.8.225.170/vls2s/vls3isapi.dll/mygetonetest?ptopid=" + user.getPtopId() + "&ruid=" + ruid + "&keid=" + keId;
+                        String testHtml = HttpClient.sendGet(testUrl, null);
+                        if (!testHtml.contains("有效自测题数量不足") && !testHtml.contains("因此本课程的在线测试功能已对你关闭")) {
+                            JXDocument jxDocument = new JXDocument(testHtml);
+                            List<Object> rs = jxDocument.sel("//head/meta/@CONTENT");
+                            String url = String.valueOf(rs.get(1));
+                            url = url.substring(url.indexOf("http://")).replace("'", "");
+                            String sonTestHtml = "";
+                            int sum = 0;
+                            for (int i = 1; i <= 100; i++) {
+                                try{
+                                    if (i == 1) {
+                                        sonTestHtml = HttpClient.sendGet(url, null);
+                                        sum = Integer.valueOf(sonTestHtml.substring(sonTestHtml.indexOf("共") + 1, sonTestHtml.indexOf("条"))) / 25 + 1;
+                                    } else {
+                                        sonTestHtml = HttpClient.sendGet(url, "&pn=" + i);
+                                    }
+                                } catch (Exception e) {
+                                    info = info + keId+"(存在问题);";
+                                    break;
+                                }
+                                /*if (sonTestHtml.contains("你的登录信息已经失效")) {
+                                    ptopId = questionService.login(user);
+                                    testHtml = HttpClient.sendGet(url, null);
+                                }*/
+                                Pattern pattern4 = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
+                                Matcher matcher4 = pattern4.matcher(sonTestHtml);
+                                while (matcher4.find()) {
+                                    String rr = matcher4.group(1).replace("\"", "").replace("testonce0", "testonce");
+                                    String ZhangId = rr.substring(rr.indexOf("zhang=") + "zhang=".length());
+                                    TestUser testUser = new TestUser();
+                                    testUser.setZhangId(ZhangId);
+                                    testUser.setUid(user.getUid());
+                                    testUser.setIsComplete(0);
+                                    testUser.setIsSubmit(0);
+                                    testUserMapper.insertNotExist(testUser);
+                                    testList.add(rr);
+                                }
+                                if (i == sum) {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            String classInfo = "";
+            if (null != classList && classList.size() > 0) {
+                classInfo = "需要听课" + classList.size() + "门。";
+            } else {
+                classInfo = "需要听课0门。";
+            }
+            String testInfo = "";
+            if (null != testList && testList.size() > 0) {
+                testInfo = "需要做" + testList.size() + "套测试题。";
+            } else {
+                testInfo = "需要做0套测试题。";
+            }
+            return classInfo + testInfo + info;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return e.getMessage();
+        }
+    }
+
+    /**
+     * 一次性获取已有账号需要考试的所有课程信息（慎用）
+     */
+    @RequestMapping(value = "/getCourseAll", method = RequestMethod.GET)
+    public void getCourseAll() {
+        try {
+            User model = new User();
+            List<User> users = userMapper.selectForList(model);
+            for (User user : users) {
+                String ptopId = "";
+                try {
+                    ptopId = questionService.login(user);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    continue;
+                }
+                String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid=" + ptopId;
+                // 设置cookie
+                HttpClient.sendGetNoRedirects(cookieUrl, null);
+                String examinesUrl = "http://222.22.63.178/student/courseList";
+                String examinesHtml = HttpClient.sendGet(examinesUrl, null);
+                Elements courseElements = new Elements();
+                Document examineDocument = Jsoup.parse(examinesHtml);
+                courseElements = examineDocument.select("li[class=class-list-li]");
+                for (Element courseElement : courseElements) {
+                    String courseName = courseElement.select("p[class=text_center class-name float-l]").text();
+                    String courseUrl = courseElement.select("a[href]").attr("href");
+                    String courseId = courseUrl.substring(courseUrl.length() - 4);
+                    Course query = courseMapper.selectOne(courseId);
+                    if (null != query) {
+                        if (!query.getUid().equals(user.getUid())) {
+                            query.setUid(user.getUid());
+                            courseMapper.update(query);
+                        }
+                    } else {
+                        Course course = new Course();
+                        course.setKeId(courseId);
+                        course.setKeName(courseName);
+                        course.setUid(user.getUid());
+                        course.setAmount(0);
+                        course.setIsComplete(0);
+                        courseMapper.insert(course);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     /**
      * 一次性获取所有网考题（慎用）
      */
@@ -134,40 +350,51 @@ public class ZhengZhouController {
     public int getExamineAll() {
         int succeed = 0;
         try {
+            Set<String> set = new HashSet<>();
             List<User> users = userMapper.selectForList(new User());
-            String ptopId = questionService.login(users.get(20));
-            String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid=" + ptopId;
-            // 设置cookie
-            HttpClient.sendGetNoRedirects(cookieUrl, null);
+            for(User user : users) {
+                String ptopId = "";
+                try {
+                    ptopId = questionService.login(user);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    continue;
+                }
+                String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid=" + ptopId;
+                // 设置cookie
+                HttpClient.sendGetNoRedirects(cookieUrl, null);
 
-            String examineDetailUrl = "http://222.22.63.178/student/exercise";
-            String examineDetailHtml = HttpClient.sendGet(examineDetailUrl, null);
-            Document document = Jsoup.parse(examineDetailHtml);
-            Elements examineElements = document.select("script[type=text/javascript]");
-            JSONArray jsonArray = new JSONArray();
-            for (Element element : examineElements) {
-                if (element.html().contains("var questionsJson =")) {
-                    String str = element.html().replace("\n", ""); //这里是为了解决 无法多行匹配的问题
-                    Matcher matcher = Pattern.compile("var questionsJson = \\[(.*?)\\]").matcher(str);
-                    if (matcher.find()) {
-                        String questionsVar = matcher.group().replace("var questionsJson =", "");
-                        jsonArray = JSONObject.parseArray(questionsVar);
+                String examineDetailUrl = "http://222.22.63.178/student/exercise";
+                String examineDetailHtml = HttpClient.sendGet(examineDetailUrl, null);
+                Document document = Jsoup.parse(examineDetailHtml);
+                Elements examineElements = document.select("script[type=text/javascript]");
+                JSONArray jsonArray = new JSONArray();
+                for (Element element : examineElements) {
+                    if (element.html().contains("var questionsJson =")) {
+                        String str = element.html().replace("\n", ""); //这里是为了解决 无法多行匹配的问题
+                        Matcher matcher = Pattern.compile("var questionsJson = \\[(.*?)\\]").matcher(str);
+                        if (matcher.find()) {
+                            String questionsVar = matcher.group().replace("var questionsJson =", "");
+                            jsonArray = JSONObject.parseArray(questionsVar);
+                        }
                     }
+                }
+                for (int i = 0; i < jsonArray.size(); i++) {
+                    String questId = jsonArray.getJSONObject(i).getString("id");
+                    set.add(questId);
                 }
             }
             List<Examine> list = new ArrayList<>();
-            for (int i = 0; i < jsonArray.size(); i++) {
-                String questId = jsonArray.getJSONObject(i).getString("id");
+            for(String questId : set) {
                 Examine examineQuery = examineMapper.selectOne(questId);
                 if (null != examineQuery) {
                     continue;
                 } else {
                     Examine examine = new Examine();
                     examine.setQuestId(questId);
-                    examine.setQuestType(jsonArray.getJSONObject(i).getString("type"));
                     examine.setIsReply(0);
                     list.add(examine);
-                    if (list.size() > 10000) {
+                    if (list.size() >= 10000) {
                         succeed = succeed + examineMapper.insertBatch(list);
                         list.clear();
                     }
@@ -179,6 +406,7 @@ public class ZhengZhouController {
             return succeed;
         } catch (Exception e) {
             System.out.println(e.getMessage());
+
         }
         return succeed;
     }
@@ -190,7 +418,7 @@ public class ZhengZhouController {
     public void getExamineAnswer() {
         try {
             List<User> users = userMapper.selectForList(new User());
-            String ptopId = questionService.login(users.get(0));
+            String ptopId = questionService.login(users.get(101));
             String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid=" + ptopId;
             // 设置cookie
             HttpClient.sendGetNoRedirects(cookieUrl, null);
@@ -544,64 +772,30 @@ public class ZhengZhouController {
         }
     }
 
-    /**
-     * 一次性获取已有账号需要考试的所有课程信息（慎用）
-     */
-    @RequestMapping(value = "/getCourseAll", method = RequestMethod.GET)
-    public void getCourseAll() {
-        try {
-            List<User> users = userMapper.selectForList(new User());
-            for (User user : users) {
-                String ptopId = questionService.login(user);
-                String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid=" + ptopId;
-                // 设置cookie
-                HttpClient.sendGetNoRedirects(cookieUrl, null);
-                String examinesUrl = "http://222.22.63.178/student/courseList";
-                String examinesHtml = HttpClient.sendGet(examinesUrl, null);
-                Elements courseElements = new Elements();
-                Document examineDocument = Jsoup.parse(examinesHtml);
-                courseElements = examineDocument.select("li[class=class-list-li]");
-                for (Element courseElement : courseElements) {
-                    String courseName = courseElement.select("p[class=text_center class-name float-l]").text();
-                    String courseUrl = courseElement.select("a[href]").attr("href");
-                    String courseId = courseUrl.substring(courseUrl.length() - 4);
-                    Course query = courseMapper.selectOne(courseId);
-                    if (null != query) {
-                        if (!query.getUid().equals(user.getUid())) {
-                            query.setUid(user.getUid());
-                            courseMapper.update(query);
-                        }
-                    } else {
-                        Course course = new Course();
-                        course.setKeId(courseId);
-                        course.setKeName(courseName);
-                        course.setUid(user.getUid());
-                        course.setAmount(0);
-                        course.setIsComplete(0);
-                        courseMapper.insert(course);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
+
 
     /**
-     * 把课程信息和网考题关联起来
+     * 把课程和网考题关联起来
      */
     @RequestMapping(value = "/setCourseForExamine", method = RequestMethod.GET)
     public void setCourseForExamine() {
         try {
             Course model = new Course();
-            model.setIsComplete(0);
+//            model.setIsComplete(0);
             List<Course> courses = courseMapper.selectForList(model);
             int k = 0;
+            List<User> userList = userMapper.selectForList(new User());
             for (Course course : courses) {
-                User query = new User();
+                /*User query = new User();
                 query.setUid(course.getUid());
-                User user = userMapper.selectOne(query);
-                String ptopId = questionService.login(user);
+                User user = userMapper.selectOne(query);*/
+                String ptopId = "";
+                try {
+                    ptopId = questionService.login(userList.get(123));
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                    continue;
+                }
                 String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid=" + ptopId;
                 // 设置cookie
                 HttpClient.sendGetNoRedirects(cookieUrl, null);
@@ -627,7 +821,10 @@ public class ZhengZhouController {
                     Examine examine = examineMapper.selectOne(questId);
                     if (null != examine) {
                         examine.setKeId(course.getKeId());
+                        examine.setKeName(course.getKeName());
                         amount = amount + examineMapper.update(examine);
+                    }else{
+                        System.out.println("漏掉的题目");
                     }
                     System.out.println(course.getKeId() + "==============关联数量=============" + ++k);
                 }
@@ -663,240 +860,6 @@ public class ZhengZhouController {
             return e.getMessage();
         }
         return JSONObject.toJSONString(list);
-    }
-
-    public String register0(User user) {
-        try {
-            String ptopId = null;
-            System.out.println("===========================获取当前账号本学期所有需要考试课程==========================");
-            String cookieUrl = "http://222.22.63.178/student/wsdlLogin?ptopid=" + user.getPtopId();
-            // 设置cookie
-            HttpClient.sendGetNoRedirects(cookieUrl, null);
-            String examinesUrl = "http://222.22.63.178/student/courseList";
-            String examinesHtml = HttpClient.sendGet(examinesUrl, null);
-            if (examinesHtml.contains("若忘记了密码，请联系你所在的学习中心")) {
-                return user.getUid() + "：密码错误";
-            }
-            Elements courseElements = new Elements();
-            Document examineDocument = Jsoup.parse(examinesHtml);
-            courseElements = examineDocument.select("li[class=class-list-li]");
-            for (Element courseElement : courseElements) {
-                String courseName = courseElement.select("p[class=text_center class-name float-l]").text();
-                String courseUrl = courseElement.select("a[href]").attr("href");
-                String courseId = courseUrl.substring(courseUrl.length() - 4);
-                Course query = courseMapper.selectOne(courseId);
-                if (null != query) {
-                    if (!query.getUid().equals(user.getUid())) {
-                        query.setUid(user.getUid());
-                        courseMapper.update(query);
-                    }
-                } else {
-                    Course course = new Course();
-                    course.setKeId(courseId);
-                    course.setKeName(courseName);
-                    course.setUid(user.getUid());
-                    course.setAmount(0);
-                    course.setIsComplete(0);
-                    courseMapper.insert(course);
-                }
-            }
-            System.out.println("===========================打开学习主页==========================");
-            // 打开学习主页
-            String reqFinal = "http://171.8.225.170/vls5s/vls3isapi2.dll/getfirstpage?ptopid=" + user.getPtopId();
-            String allclass = HttpClient.sendGet(reqFinal, null);
-            if (allclass.contains("你的登录信息已经失效")) {
-                ptopId = questionService.login(user);
-                reqFinal = "http://171.8.225.170/vls5s/vls3isapi2.dll/getfirstpage?ptopid=" + ptopId;
-                allclass = HttpClient.sendGet(reqFinal, null);
-            }
-            // 设置专业 和 设置入学时间
-            if (StringUtils.isBlank(user.getMajor()) || StringUtils.isBlank(user.getGrade())) {
-                Document allclassDocument = Jsoup.parse(allclass);
-                String allclassStr = allclassDocument.text().replace(" ", "");
-                // 设置专业
-                String major = allclassStr.substring(allclassStr.lastIndexOf("你所学的专业是：") + "你所学的专业是：".length(),
-                        allclassStr.lastIndexOf("；年级是："));
-                user.setMajor(major);
-                // 设置入学时间
-                String grade = allclassStr.substring(allclassStr.lastIndexOf("年级是：") + "年级是：".length(),
-                        allclassStr.lastIndexOf("年级是：") + "年级是：".length() + 5);
-                user.setGrade(grade);
-                userMapper.update(user);
-            }
-            System.out.println("===========================添加本学期听课列表==========================");
-            List<String> keChengList = new ArrayList<>();
-            Pattern pattern = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
-            /*if(allclass.contains("你应已修习")){
-                allclass = allclass.substring(0,allclass.indexOf("你应已修习"));
-            }*/
-            List<String> classList = new ArrayList<>();
-            List<String> testList = new ArrayList<>();
-            // 听课
-            Matcher matcher = pattern.matcher(allclass);
-            String info = "";
-            while (matcher.find()) {
-                String r = matcher.group(1).replace("\"", "");
-                if (r.contains("lookonecourse")) {
-                    String keId = r.substring(r.indexOf("keid=") + "keid=".length());
-                    if (!keId.equals("0027") && !keId.equals("9011")) {
-                        keChengList.add(keId);
-                        String KeChengDetailUrl = "http://171.8.225.170/vls5s/vls3isapi2.dll/lookonecourse?ptopid=" + user.getPtopId() + "&keid=" + keId;
-                        String KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
-                        if (KeChengDetailHtml.contains("你的登录信息已经失效")) {
-                            ptopId = questionService.login(user);
-                            KeChengDetailUrl = "http://171.8.225.170/vls5s/vls3isapi2.dll/lookonecourse?ptopid=" + ptopId + "&keid=" + keId;
-                            KeChengDetailHtml = HttpClient.sendGet(KeChengDetailUrl, null);
-                        }
-                        String ruid = KeChengDetailHtml.substring(KeChengDetailHtml.indexOf("&ruid=") + "&ruid=".length(), KeChengDetailHtml.indexOf("&cid="));
-                        Document document = Jsoup.parse(KeChengDetailHtml);
-                        String text = document.body().text().trim();
-                        // 听课
-                        if (/*!text.contains("共10分，你已取得10分") &&*/ !text.contains("因库中无有效课件，你直接取得10分")
-                                && !text.contains("因库中无有效课件，你直接取得10分") && !text.contains("点播课件不再计分")) {
-                            ClazzUser clazzUser = new ClazzUser();
-                            clazzUser.setClzssId(keId);
-                            clazzUser.setUid(user.getUid());
-                            if (text.contains("共10分，你已取得10分")) {
-                                clazzUser.setScore(10);
-                                clazzUser.setIsComplete(1);
-                            } else {
-                                String score = text.substring(text.indexOf("共10分，你已取得") + "共10分，你已取得".length(), text.indexOf("共10分，你已取得") + "共10分，你已取得".length() + 1);
-                                clazzUser.setScore(Integer.valueOf(score));
-                                clazzUser.setIsComplete(0);
-                            }
-                            clazzUserMapper.insertNotExist(clazzUser);
-                            classList.add(keId);
-                        }
-                        // 练习
-                        String testUrl = "http://171.8.225.170/vls2s/vls3isapi.dll/mygetonetest?ptopid=" + user.getPtopId() + "&ruid=" + ruid + "&keid=" + keId;
-                        String testHtml = HttpClient.sendGet(testUrl, null);
-                        if (!testHtml.contains("有效自测题数量不足") && !testHtml.contains("因此本课程的在线测试功能已对你关闭")) {
-                            JXDocument jxDocument = new JXDocument(testHtml);
-                            List<Object> rs = jxDocument.sel("//head/meta/@CONTENT");
-                            String url = String.valueOf(rs.get(1));
-                            url = url.substring(url.indexOf("http://")).replace("'", "");
-                            String sonTestHtml = "";
-                            int sum = 0;
-                            for (int i = 1; i <= 100; i++) {
-                                try{
-                                    if (i == 1) {
-                                        sonTestHtml = HttpClient.sendGet(url, null);
-                                        sum = Integer.valueOf(sonTestHtml.substring(sonTestHtml.indexOf("共") + 1, sonTestHtml.indexOf("条"))) / 25 + 1;
-                                    } else {
-                                        sonTestHtml = HttpClient.sendGet(url, "&pn=" + i);
-                                    }
-                                } catch (Exception e) {
-                                    info = info + keId+"(存在问题);";
-                                    break;
-                                }
-                                /*if (sonTestHtml.contains("你的登录信息已经失效")) {
-                                    ptopId = questionService.login(user);
-                                    testHtml = HttpClient.sendGet(url, null);
-                                }*/
-                                Pattern pattern4 = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
-                                Matcher matcher4 = pattern4.matcher(sonTestHtml);
-                                while (matcher4.find()) {
-                                    String rr = matcher4.group(1).replace("\"", "").replace("testonce0", "testonce");
-                                    String ZhangId = rr.substring(rr.indexOf("zhang=") + "zhang=".length());
-                                    TestUser testUser = new TestUser();
-                                    testUser.setZhangId(ZhangId);
-                                    testUser.setUid(user.getUid());
-                                    testUser.setIsComplete(0);
-                                    testUser.setIsSubmit(0);
-                                    testUserMapper.insertNotExist(testUser);
-                                    testList.add(rr);
-                                }
-                                if (i == sum) {
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-//            System.out.println("===========================获取sid参数========================================");
-//            String sid = "";
-//            for (String keCheng : keChengList) {
-//                // 测试
-//                String testUrl = "http://171.8.225.170/vls2s/vls3isapi.dll/mygetonetest?ptopid=" + user.getPtopId() + "&keid=" + keCheng;
-//                String testHtml = HttpClient.sendGet(testUrl, null);
-//                if (!testHtml.contains("有效自测题数量不足") && !testHtml.contains("因此本课程的在线测试功能已对你关闭")) {
-//                    JXDocument jxDocument = new JXDocument(testHtml);
-//                    List<Object> rs = jxDocument.sel("//head/meta/@CONTENT");
-//                    String url = String.valueOf(rs.get(1));
-//                    url = url.substring(url.indexOf("http://")).replace("'", "");
-//                    String sonTestHtml = HttpClient.sendGet(url, null);
-//
-//
-//
-//
-//                    sid = testHtml.substring(testHtml.indexOf("&sid=") + "&sid=".length(), testHtml.indexOf("&wheres="));
-//                }
-//
-//
-//            }
-//            if (StringUtils.isBlank(sid)) {
-//                return "没有需要测试的科目";
-//            }
-//            System.out.println("===========================添加本学期测试列表========================================");
-//            String needQuery = "http://171.8.225.170/vls2s/vls3isapi.dll/myviewdatalist";
-//            String needParam = "ptopid=" + user.getPtopId() + "&sid=" + sid;
-//            System.out.println(needQuery + "?" + needParam);
-//            List<String> testList = new ArrayList<>();
-//            int sum = 0;
-//            String testHtml = "";
-//            for (int i = 1; i <= 100; i++) {
-//                /*if (i == 1) {
-//                    testHtml = HttpClient.sendPost(needQuery, needParam);
-//                    sum = Integer.valueOf(testHtml.substring(testHtml.indexOf("共") + 1, testHtml.indexOf("条"))) / 25 + 1;
-//                }else {
-//                    testHtml = HttpClient.sendPost(needQuery, needParam + "&pn=" + i);
-//                }*/
-//                testHtml = HttpClient.sendGet(needQuery, needParam + "&pn=" + i);
-//                if (testHtml.contains("你的登录信息已经失效")) {
-//                    ptopId = questionService.login(user);
-//                    needParam = "ptopid=" + ptopId + "&sid=" + sid;
-//                    testHtml = HttpClient.sendGet(needQuery, needParam);
-//                }
-//                if (!testHtml.contains("testonce0")) {
-//                    break;
-//                }
-//                Pattern pattern4 = compile("<a[^>]*href=(\\\"([^\\\"]*)\\\"|\\'([^\\']*)\\'|([^\\\\s>]*))[^>]*>(.*?)</a>");
-//                Matcher matcher4 = pattern4.matcher(testHtml);
-//                while (matcher4.find()) {
-//                    String r = matcher4.group(1).replace("\"", "").replace("testonce0", "testonce");
-//                    String ZhangId = r.substring(r.indexOf("zhang=") + "zhang=".length());
-//                    String keId = ZhangId.substring(0, 4);
-//                    TestUser testUser = new TestUser();
-//                    testUser.setZhangId(ZhangId);
-//                    testUser.setUid(user.getUid());
-//                    testUser.setIsComplete(0);
-//                    testUser.setIsSubmit(0);
-//                    testUserMapper.insertNotExist(testUser);
-//                    testList.add(r);
-//                }
-//                /*if (i == sum) {
-//                    break;
-//                }*/
-//            }
-            String classInfo = "";
-            if (null != classList && classList.size() > 0) {
-                classInfo = "需要听课" + classList.size() + "门。";
-            } else {
-                classInfo = "需要听课0门。";
-            }
-            String testInfo = "";
-            if (null != testList && testList.size() > 0) {
-                testInfo = "需要做" + testList.size() + "套测试题。";
-            } else {
-                testInfo = "需要做0套测试题。";
-            }
-            return classInfo + testInfo + info;
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return e.getMessage();
-        }
     }
 
     @RequestMapping(value = "/openTest", method = RequestMethod.GET)

@@ -86,15 +86,18 @@ public class ShopController {
                     String date = rs3.get(1).toString().replace("年", "/").replace("月", "/").replace("日", "");
                     list.add(postId.toString() + "--" + date + "--" + code + "--" + "佐川转运");
                 } else if (url.contains("SBS_LTRC")) { // SBS转运
+                    // https://www.saqura-web.com/SBS_LTRC/KF_5020.aspx?IraNo=37013889990
                     /*url = url.substring(url.indexOf("https://"));
                     String zcHtml = HttpClient.sendGet(url, null);
                     JXDocument jxDocumentZc = new JXDocument(zcHtml);*/
-                    list.add(postId.toString() + "--XXXX-XX-XX--" + postId.toString() + "--" + "SBS转运");
+                    list.add(postId.toString() + "--XXXX-XX-XX--" + postId.toString() + "--" + "SBS转运(追跡サービス:https://www.saqura-web.com/SBS_LTRC/KF_5020.aspx?IraNo="+postId.toString()+")");
                 } else if (url.contains("ocs")) { // ocs
                     /*url = url.substring(url.indexOf("https://"));
                     String zcHtml = HttpClient.sendGet(url, null,"UTF-8");
                     JXDocument jxDocumentZc = new JXDocument(zcHtml);*/
                     list.add(postId.toString() + "--XXXX-XX-XX--" + postId.toString() + "--" + "ocs自运");
+                } else {
+                    list.add(postId.toString() + "--XXXX-XX-XX--" + postId.toString() + "--" + "未查到");
                 }
             } catch (Exception e) {
                 list.add(postId.toString() + "未查到" + e.getMessage());
@@ -103,6 +106,4 @@ public class ShopController {
         }
         return list;
     }
-
-
 }

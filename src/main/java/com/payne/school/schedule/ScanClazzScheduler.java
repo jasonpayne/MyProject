@@ -35,7 +35,7 @@ public class ScanClazzScheduler {
 //    @Scheduled(cron = "0 0,4,8,12,16,20,24,28,32,36,40,44,48,52,56 * * * ?")
 //    @Scheduled(cron = "0 0/5 * * * ?")
 //    @Scheduled(cron = "0 0,6,12,18,24,30,36,42,48,54 * * * ?")
-//    @Scheduled(cron = "0 0/20 * * * ?")
+    @Scheduled(cron = "0 0/6 * * * ?")
     @Async("asyncScheduleExecutor")
     public void scanTestScheduler() {
         LOGGER.info("定时听课");

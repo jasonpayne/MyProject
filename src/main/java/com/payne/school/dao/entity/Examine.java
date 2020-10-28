@@ -27,6 +27,11 @@ public class Examine {
     private String keId;
 
     /**
+     * 课程名称
+     */
+    private String keName;
+
+    /**
      * 题目内容
      */
     private String questName;
