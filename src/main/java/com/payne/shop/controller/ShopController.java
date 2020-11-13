@@ -4,8 +4,9 @@ package com.payne.shop.controller;
 import cn.wanghaomiao.xpath.model.JXDocument;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.payne.school.dao.mapper.UserMapper;
+import com.payne.school.mapper.UserMapper;
 import com.payne.shop.utils.HttpClientShop;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +34,7 @@ public class ShopController {
      * @param jSONObject
      * @return
      */
+    @ApiOperation(value = "登陆", notes = "登陆")
     @RequestMapping(value = "/loginTest", method = RequestMethod.POST)
     @ResponseBody
     public List<String> loginTest(@RequestBody JSONObject jSONObject) {
@@ -42,12 +44,14 @@ public class ShopController {
         return null;
     }
 
+
     /**
      * 登陆
      *
      * @param jSONObject
      * @return
      */
+    @ApiOperation(value = "登陆222", notes = "登陆222")
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     @ResponseBody
     public List<String> login(@RequestBody JSONObject jSONObject) {
@@ -62,6 +66,7 @@ public class ShopController {
      * @param jSONObject
      * @return
      */
+    @ApiOperation(value = "快递更新信息", notes = "快递更新信息")
     @RequestMapping(value = "/getTrack", method = RequestMethod.POST)
     @ResponseBody
     public List<String> getTrack(@RequestBody JSONObject jSONObject) {
@@ -90,7 +95,7 @@ public class ShopController {
                     /*url = url.substring(url.indexOf("https://"));
                     String zcHtml = HttpClient.sendGet(url, null);
                     JXDocument jxDocumentZc = new JXDocument(zcHtml);*/
-                    list.add(postId.toString() + "--XXXX-XX-XX--" + postId.toString() + "--" + "SBS转运(追跡サービス:https://www.saqura-web.com/SBS_LTRC/KF_5020.aspx?IraNo="+postId.toString()+")");
+                    list.add(postId.toString() + "--XXXX-XX-XX--" + postId.toString() + "--" + "SBS转运(追跡サービス:https://www.saqura-web.com/SBS_LTRC/KF_5020.aspx?IraNo=" + postId.toString() + ")");
                 } else if (url.contains("ocs")) { // ocs
                     /*url = url.substring(url.indexOf("https://"));
                     String zcHtml = HttpClient.sendGet(url, null,"UTF-8");

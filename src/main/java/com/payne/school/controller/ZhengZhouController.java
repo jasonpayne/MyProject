@@ -3,22 +3,22 @@ package com.payne.school.controller;
 import cn.wanghaomiao.xpath.model.JXDocument;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.payne.school.dao.entity.*;
-import com.payne.school.dao.mapper.*;
 import com.payne.school.enums.QuestionType;
-import com.payne.school.model.QuestAnswer;
+import com.payne.school.mapper.*;
+import com.payne.school.model.*;
 import com.payne.school.service.ClazzService;
-import com.payne.school.utils.HttpClient;
-import com.payne.school.dao.entity.*;
-import com.payne.school.dao.mapper.*;
 import com.payne.school.service.QuestionService;
+import com.payne.school.utils.HttpClient;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -238,7 +238,7 @@ public class ZhengZhouController {
                             String sonTestHtml = "";
                             int sum = 0;
                             for (int i = 1; i <= 100; i++) {
-                                try{
+                                try {
                                     if (i == 1) {
                                         sonTestHtml = HttpClient.sendGet(url, null);
                                         sum = Integer.valueOf(sonTestHtml.substring(sonTestHtml.indexOf("共") + 1, sonTestHtml.indexOf("条"))) / 25 + 1;
@@ -246,7 +246,7 @@ public class ZhengZhouController {
                                         sonTestHtml = HttpClient.sendGet(url, "&pn=" + i);
                                     }
                                 } catch (Exception e) {
-                                    info = info + keId+"(存在问题);";
+                                    info = info + keId + "(存在问题);";
                                     break;
                                 }
                                 /*if (sonTestHtml.contains("你的登录信息已经失效")) {
@@ -352,7 +352,7 @@ public class ZhengZhouController {
         try {
             Set<String> set = new HashSet<>();
             List<User> users = userMapper.selectForList(new User());
-            for(User user : users) {
+            for (User user : users) {
                 String ptopId = "";
                 try {
                     ptopId = questionService.login(user);
@@ -385,7 +385,7 @@ public class ZhengZhouController {
                 }
             }
             List<Examine> list = new ArrayList<>();
-            for(String questId : set) {
+            for (String questId : set) {
                 Examine examineQuery = examineMapper.selectOne(questId);
                 if (null != examineQuery) {
                     continue;
@@ -773,7 +773,6 @@ public class ZhengZhouController {
     }
 
 
-
     /**
      * 把课程和网考题关联起来
      */
@@ -823,7 +822,7 @@ public class ZhengZhouController {
                         examine.setKeId(course.getKeId());
                         examine.setKeName(course.getKeName());
                         amount = amount + examineMapper.update(examine);
-                    }else{
+                    } else {
                         System.out.println("漏掉的题目");
                     }
                     System.out.println(course.getKeId() + "==============关联数量=============" + ++k);

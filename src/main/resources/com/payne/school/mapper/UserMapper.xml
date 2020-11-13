@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.payne.school.mapper.UserMapper">
+
+    <resultMap id="ResultMap" type="com.payne.school.model.User">
+        <result column="name" property="name"/>
+        <result column="uid" property="uid"/>
+        <result column="pw" property="pw"/>
+        <result column="ptop_id" property="ptopId"/>
+        <result column="major" property="major"/>
+        <result column="grade" property="grade"/>
+        <result column="is_clazz" property="isClazz"/>
+        <result column="is_test" property="isTest"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+                name,
+                uid,
+                pw,
+                ptop_id,
+                major,
+                grade,
+                is_clazz,
+                is_test
+    </sql>
+
+    <sql id="whereSQL">
+        <if test="name != null and name != '' ">
+            AND name = #{name}
+        </if>
+        <if test="uid != null and uid != '' ">
+            AND uid = #{uid}
+        </if>
+        <if test="pw != null and pw != '' ">
+            AND pw = #{pw}
+        </if>
+        <if test="ptopId != null and ptopId != '' ">
+            AND ptop_id = #{ptopId}
+        </if>
+        <if test="major != null and major != '' ">
+            AND major = #{major}
+        </if>
+        <if test="grade != null and grade != '' ">
+            AND grade = #{grade}
+        </if>
+        <if test="isClazz != null ">
+            AND is_clazz = #{isClazz}
+        </if>
+        <if test="isTest != null ">
+            AND is_test = #{isTest}
+        </if>
+    </sql>
+
+    <select id="selectForList" resultMap="ResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user
+        WHERE 1 = 1
+        <include refid="whereSQL"/>
+    </select>
+
+    <select id="selectOne" resultMap="ResultMap" parameterType="com.payne.school.model.User">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user
+        WHERE uid = #{uid}
+    </select>
+
+    <select id="login" resultMap="ResultMap" parameterType="com.payne.school.model.User">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM user
+        WHERE uid = #{uid} AND pw = #{pw}
+    </select>
+
+    <insert id="insert" parameterType="com.payne.school.model.User">
+        INSERT INTO user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test='null != name'>
+                name,
+            </if>
+            <if test='null != uid'>
+                uid,
+            </if>
+            <if test='null != pw'>
+                pw,
+            </if>
+            <if test='null != ptopId'>
+                ptop_id,
+            </if>
+            <if test='null != major'>
+                major,
+            </if>
+            <if test='null != grade'>
+                grade,
+            </if>
+            <if test='null != isClazz'>
+                is_clazz,
+            </if>
+            <if test='null != isTest'>
+                is_test,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test='null != name'>
+                #{name},
+            </if>
+            <if test='null != uid'>
+                #{uid},
+            </if>
+            <if test='null != pw'>
+                #{pw},
+            </if>
+            <if test='null != ptopId'>
+                #{ptopId},
+            </if>
+            <if test='null != major'>
+                #{major},
+            </if>
+            <if test='null != grade'>
+                #{grade},
+            </if>
+            <if test='null != isClazz'>
+                #{isClazz},
+            </if>
+            <if test='null != isTest'>
+                #{isTest},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="com.payne.school.model.User">
+        UPDATE user
+        <set>
+            <if test='null != name'>name = #{name},</if>
+            <if test='null != ptopId'>ptop_id = #{ptopId},</if>
+            <if test='null != major'>major = #{major},</if>
+            <if test='null != grade'>grade = #{grade},</if>
+            <if test='null != isClazz'>is_clazz = #{isClazz},</if>
+            <if test='null != isTest'>is_test = #{isTest},</if>
+        </set>
+        WHERE uid = #{uid} AND pw = #{pw}
+    </update>
+
+</mapper>

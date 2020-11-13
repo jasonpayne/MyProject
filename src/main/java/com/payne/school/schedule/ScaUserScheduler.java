@@ -1,11 +1,11 @@
 package com.payne.school.schedule;
 
-import com.payne.school.dao.entity.ClazzUser;
-import com.payne.school.dao.entity.TestUser;
-import com.payne.school.dao.entity.User;
-import com.payne.school.dao.mapper.ClazzUserMapper;
-import com.payne.school.dao.mapper.TestUserMapper;
-import com.payne.school.dao.mapper.UserMapper;
+import com.payne.school.mapper.ClazzUserMapper;
+import com.payne.school.mapper.TestUserMapper;
+import com.payne.school.mapper.UserMapper;
+import com.payne.school.model.ClazzUser;
+import com.payne.school.model.TestUser;
+import com.payne.school.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,19 +43,19 @@ public class ScaUserScheduler {
         User user = new User();
         user.setIsTest(0);
         List<User> userList = userMapper.selectForList(user);
-        for(User queryUser : userList){
+        for (User queryUser : userList) {
             TestUser testUser = new TestUser();
             testUser.setUid(queryUser.getUid());
             List<TestUser> testUserList = testUserMapper.selectForList(testUser);
             boolean flag = true;
-            for(TestUser queryTestUser : testUserList){
-                if(null == queryTestUser.getIsComplete() || null == queryTestUser.getScore()
-                       || queryTestUser.getIsComplete() != 1 || queryTestUser.getScore() != 20){
+            for (TestUser queryTestUser : testUserList) {
+                if (null == queryTestUser.getIsComplete() || null == queryTestUser.getScore()
+                        || queryTestUser.getIsComplete() != 1 || queryTestUser.getScore() != 20) {
                     flag = false;
                     break;
                 }
             }
-            if(flag){
+            if (flag) {
                 // TODO 可以把答完的TestUser删了
                 queryUser.setIsTest(1);
                 userMapper.update(queryUser);
@@ -74,19 +74,19 @@ public class ScaUserScheduler {
         User user = new User();
         user.setIsClazz(0);
         List<User> userList = userMapper.selectForList(user);
-        for(User queryUser : userList){
+        for (User queryUser : userList) {
             ClazzUser clazzUser = new ClazzUser();
             clazzUser.setUid(queryUser.getUid());
             List<ClazzUser> clazzUserList = clazzUserMapper.selectForList(clazzUser);
             boolean flag = true;
-            for(ClazzUser queryClazzUser : clazzUserList){
-                if(null == queryClazzUser.getIsComplete() || null == queryClazzUser.getScore()
-                        || queryClazzUser.getIsComplete() != 1 || queryClazzUser.getScore() != 10){
+            for (ClazzUser queryClazzUser : clazzUserList) {
+                if (null == queryClazzUser.getIsComplete() || null == queryClazzUser.getScore()
+                        || queryClazzUser.getIsComplete() != 1 || queryClazzUser.getScore() != 10) {
                     flag = false;
                     break;
                 }
             }
-            if(flag){
+            if (flag) {
                 // TODO 可以把答完的TestUser删了
                 queryUser.setIsClazz(1);
                 userMapper.update(queryUser);

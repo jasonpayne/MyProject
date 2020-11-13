@@ -1,8 +1,8 @@
 package com.payne.school.service;
 
 
-import com.payne.school.dao.entity.User;
 import com.payne.school.model.MajorTest;
+import com.payne.school.model.User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,6 +10,7 @@ import java.util.Map;
 
 /**
  * 实现通用接口
+ *
  * @author xinchao.pan
  */
 @Service
@@ -23,7 +24,7 @@ public interface QuestionService {
 
     MajorTest majorDetailToTest(String majorUrl);
 
-    List<Map<String,Object>> testList(String majorUrl);
+    List<Map<String, Object>> testList(String majorUrl);
 
     String openTest();
 

@@ -1,8 +1,8 @@
 //package com.payne.school.schedule;
 //
 //import com.alibaba.fastjson.JSONArray;
-//import com.payne.school.dao.entity.Examine;
-//import com.payne.school.dao.entity.User;
+//import com.payne.school.model.Examine;
+//import com.payne.school.model.User;
 //import com.payne.school.dao.mapper.ExamineMapper;
 //import com.payne.school.dao.mapper.UserMapper;
 //import com.payne.school.service.QuestionService;

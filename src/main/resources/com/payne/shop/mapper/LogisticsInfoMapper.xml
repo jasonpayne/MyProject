@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.payne.shop.mapper.LogisticsInfoMapper">
+
+    <resultMap id="BaseResultMap" type="com.payne.shop.model.LogisticsInfo">
+        <result column="id" property="id"/>
+        <result column="orderCode" property="orderCode"/>
+        <result column="inTranCode" property="inTranCode"/>
+        <result column="outTranCode" property="outTranCode"/>
+        <result column="obtainTime" property="obtainTime"/>
+        <result column="tranDetail" property="tranDetail"/>
+        <result column="signTime" property="signTime"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+                id,
+                orderCode,
+                inTranCode,
+                outTranCode,
+                obtainTime,
+                tranDetail,
+                signTime,
+                status
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyColumn="id" keyProperty="id"
+            parameterType="com.payne.shop.model.LogisticsInfo">
+        INSERT INTO logistics_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test='null != orderCode'>
+                orderCode,
+            </if>
+            <if test='null != inTranCode'>
+                inTranCode,
+            </if>
+            <if test='null != outTranCode'>
+                outTranCode,
+            </if>
+            <if test='null != obtainTime'>
+                obtainTime,
+            </if>
+            <if test='null != tranDetail'>
+                tranDetail,
+            </if>
+            <if test='null != signTime'>
+                signTime,
+            </if>
+            <if test='null != status'>
+                status
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test='null != orderCode'>
+                #{orderCode},
+            </if>
+            <if test='null != inTranCode'>
+                #{inTranCode},
+            </if>
+            <if test='null != outTranCode'>
+                #{outTranCode},
+            </if>
+            <if test='null != obtainTime'>
+                #{obtainTime},
+            </if>
+            <if test='null != tranDetail'>
+                #{tranDetail},
+            </if>
+            <if test='null != signTime'>
+                #{signTime},
+            </if>
+            <if test='null != status'>
+                #{status}
+            </if>
+        </trim>
+    </insert>
+
+    <insert id="insertBatch" parameterType="com.payne.shop.model.LogisticsInfo">
+        replace into logistics_info (orderCode, inTranCode, outTranCode, obtainTime, tranDetail, signTime) values
+        <foreach collection="list" item="item" separator=",">
+            (#{item.orderCode},#{item.inTranCode},#{item.outTranCode},#{item.obtainTime},#{item.tranDetail},#{item.signTime})
+        </foreach>
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM logistics_info
+        WHERE id = #{id}
+    </delete>
+
+    <update id="update" parameterType="com.payne.shop.model.LogisticsInfo">
+        UPDATE logistics_info
+        <set>
+            <if test='null != orderCode'>orderCode = #{orderCode},</if>
+            <if test='null != inTranCode'>inTranCode = #{inTranCode},</if>
+            <if test='null != outTranCode'>outTranCode = #{outTranCode},</if>
+            <if test='null != obtainTime'>obtainTime = #{obtainTime},</if>
+            <if test='null != tranDetail'>tranDetail = #{tranDetail},</if>
+            <if test='null != signTime'>signTime = #{signTime},</if>
+            <if test='null != status'>status = #{status}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+
+    <select id="load" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM logistics_info
+        WHERE inTranCode = #{inTranCode}
+    </select>
+
+    <select id="pageList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM logistics_info
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="pageListCount" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM logistics_info
+    </select>
+
+</mapper>
