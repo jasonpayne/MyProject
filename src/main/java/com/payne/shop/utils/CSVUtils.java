@@ -64,16 +64,29 @@ public class CSVUtils {
 //      写入表头String[] head = {"订单日期", "订单号", "sku", "数量", "发货日期", "OCS", "黑猫", "邮编", "收件人地址", "收件人", "电话号码"};
         printer.printRecord(head);
         List<String[]> values = new ArrayList<>();
+        String orderId = "";
+        Boolean repeatOrderFlag = true;
         for (OrderInfo orderInfo : orderlist) {
-            String firstIndex = "";
-            if (orderInfo.getSkuId().contains("bd1-")
-                    || Integer.valueOf(orderInfo.getQuantity()) > 1
-                    || orderInfo.getAddress().contains("/")) {
-                firstIndex = "head-check";
+            if (StringUtils.isNotBlank(orderId) && orderInfo.getOrderId().equals(orderId)) {
+                repeatOrderFlag = false;
+            } else {
+                repeatOrderFlag = true;
             }
-            String[] orderArr = {firstIndex, orderInfo.getOrderId(), orderInfo.getSkuId(), orderInfo.getQuantity(), "", "", "",
-                    orderInfo.getZipCode(), orderInfo.getAddress(), orderInfo.getShipName(), orderInfo.getPhone()};
+            orderId = orderInfo.getOrderId();
+            String[] orderArr = {
+                    repeatOrderFlag ? orderInfo.getOrderTime() : "",
+                    repeatOrderFlag ? orderInfo.getOrderId() : "",
+                    orderInfo.getSkuId(), orderInfo.getQuantity(),
+                    "", "", "",
+                    repeatOrderFlag ? orderInfo.getZipCode() : "",
+                    repeatOrderFlag ? orderInfo.getAddress() : "",
+                    repeatOrderFlag ? orderInfo.getShipName() : "",
+                    repeatOrderFlag ? orderInfo.getPhone() : ""};
             values.add(orderArr);
+        }
+        if (orderlist.get(0).getRepeatFlag()) {
+            String[] orderExplain = {"根据收货人或者电话号码判断出存在一起发货的订单"};
+            values.add(orderExplain);
         }
 //      写入内容
         for (String[] value : values) {
@@ -186,10 +199,21 @@ public class CSVUtils {
                         spxx.setAddress(mjxx.getAddress());
                         spxx.setShipName(mjxx.getShipName());
                         spxx.setPhone(mjxx.getPhone());
+                        spxx.setOrderTime(mjxx.getOrderTime());
                     }
                 }
             }
             spxxList.sort(Comparator.comparing(OrderInfo::getOrderId));
+            // 根据收货人或者电话号码判断是否能一起发货
+            Set<String> shipNameSet = new HashSet<>();
+            Set<String> iphoneSet = new HashSet<>();
+            for (OrderInfo mjxx : mjxxList) {
+                iphoneSet.add(mjxx.getShipName());
+                shipNameSet.add(mjxx.getPhone());
+            }
+            if (shipNameSet.size() < mjxxList.size() || iphoneSet.size() < mjxxList.size()) {
+                spxxList.get(0).setRepeatFlag(true);
+            }
             file1.delete();
             file2.delete();
             return spxxList;
@@ -234,6 +258,14 @@ public class CSVUtils {
                     orderInfo.setSkuId(StringUtils.isNotBlank(record.get(3)) ? record.get(3) : record.get(2));
                     // 数量
                     orderInfo.setQuantity(record.get(4));
+                    // 是否存在附带商品
+                    if (StringUtils.isNotBlank(orderInfo.getSkuId()) && orderInfo.getSkuId().contains("bd1-")) {
+                        if (record.get(6).contains("800")) {
+                            orderInfo.setSkuId(orderInfo.getSkuId() + "(是套餐)");
+                        } else {
+                            orderInfo.setSkuId(orderInfo.getSkuId() + "(不是套餐)");
+                        }
+                    }
                 } else if (filePath.contains("mjxx")) {
                     // 订单ID
                     orderInfo.setOrderId(record.get(0));
@@ -262,6 +294,9 @@ public class CSVUtils {
                     }
                     phone = phone.substring(0, phone.length() - 8) + "-" + phone.substring(phone.length() - 8, phone.length() - 4) + "-" + phone.substring(phone.length() - 4);
                     orderInfo.setPhone(phone);
+                    // 订单时间
+                    String orderTime = record.get(14);
+                    orderInfo.setOrderTime(orderTime.substring(0, orderTime.indexOf(" ")));
                 }
                 values.add(orderInfo);
                 rowIndex++;
@@ -401,6 +436,9 @@ public class CSVUtils {
             XSSFSheet sheetAt = sheets.getSheetAt(0);
             for (int rowNum = 0; rowNum <= sheetAt.getLastRowNum(); rowNum++) {
                 XSSFRow row = sheetAt.getRow(rowNum);
+                if (null == row) {
+                    continue;
+                }
                 LogisticsInfo logisticsInfo = new LogisticsInfo();
                 if (row.getCell(4) != null) {
                     row.getCell(4).setCellType(CellType.STRING);
@@ -430,7 +468,9 @@ public class CSVUtils {
                         logisticsInfo.setTranDetail(model.getTranDetail());
                     }
                 }
-                list.add(logisticsInfo);
+                if (StringUtils.isNotBlank(logisticsInfo.getSkuId())) {
+                    list.add(logisticsInfo);
+                }
             }
             //关闭workbook
             sheets.close();
@@ -456,7 +496,9 @@ public class CSVUtils {
         List<String[]> values = new ArrayList<>();
         for (LogisticsInfo logisticsInfo : expressList) {
             String[] orderArr = {logisticsInfo.getOrderCode(), logisticsInfo.getSkuId(), logisticsInfo.getQuantity(),
-                    logisticsInfo.getObtainTime(), logisticsInfo.getInTranCode(), logisticsInfo.getOutTranCode() + "\t", logisticsInfo.getTranDetail()};
+                    logisticsInfo.getObtainTime(), logisticsInfo.getInTranCode(),
+                    StringUtils.isNotBlank(logisticsInfo.getOutTranCode()) ? logisticsInfo.getOutTranCode() + "\t" : logisticsInfo.getOutTranCode(),
+                    logisticsInfo.getTranDetail()};
             values.add(orderArr);
         }
 //      写入内容

@@ -64,9 +64,9 @@ public class ExcelController {
     }
 
     /**
-     * 上传synchro-express-info.xlsx文件同步快递号信息
+     * 上传synchro-express-info文件同步快递号信息
      */
-    @ApiOperation(value = "同步快递号信息", notes = "同步快递号信息")
+    @ApiOperation(value = "上传order-temple文件同步快递号信息", notes = "上传order-temple文件同步快递号信息")
     @RequestMapping(value = "/synchroExpress", method = RequestMethod.POST)
     public Object synchroExpress(HttpServletResponse response, MultipartFile file) {
         List<LogisticsInfo> expressList = new ArrayList<>();

@@ -49,4 +49,14 @@ public class OrderInfo implements Serializable {
      */
     private String phone;
 
+    /**
+     * 订单时间
+     */
+    private String orderTime;
+
+    /**
+     * 是否存在一起发货的订单（默认不存在）
+     */
+    private Boolean repeatFlag = false;
+
 }

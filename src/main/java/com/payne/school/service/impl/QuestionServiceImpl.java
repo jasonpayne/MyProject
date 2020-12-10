@@ -211,8 +211,8 @@ public class QuestionServiceImpl implements QuestionService {
                 while (testDetailMatcher.find()) {
                     String r = testDetailMatcher.group(1);
                     if (r.contains(model.getZhangId())) {
-                        if (r.contains("A") || r.contains("B") || r.contains("C") || r.contains("D") || r.contains("E")
-                                || r.contains("F") || r.contains("G") || r.contains("H") || r.contains("i") || r.contains("j")) {
+                        if (r.contains("A") || r.contains("B") || r.contains("C") || r.contains("D") || r.contains("E") || r.contains("F") || r.contains("G")
+                                || r.contains("H") || r.contains("I") || r.contains("J") || r.contains("K") || r.contains("L") || r.contains("M") || r.contains("N")) {
                             questionSet.add(r.substring(0, r.length() - 1));
                             map.put(r.substring(0, r.length() - 1), r.substring(r.length() - 1));
                         } else {
