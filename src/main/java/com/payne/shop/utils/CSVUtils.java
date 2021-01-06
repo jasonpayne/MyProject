@@ -1,8 +1,10 @@
 package com.payne.shop.utils;
 
 
+import com.payne.shop.entity.LogisticsInfo;
+import com.payne.shop.entity.ShopOrder;
 import com.payne.shop.mapper.LogisticsInfoMapper;
-import com.payne.shop.model.LogisticsInfo;
+import com.payne.shop.mapper.ShopOrderMapper;
 import com.payne.shop.model.OrderInfo;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -12,7 +14,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -38,6 +43,9 @@ public class CSVUtils {
     @Resource
     private LogisticsInfoMapper logisticsInfoMapper;
 
+    @Resource
+    private ShopOrderMapper shopOrderMapper;
+
     private static Logger logger = LoggerFactory.getLogger(CSVUtils.class);
     //行尾分隔符定义
     private final static String NEW_LINE_SEPARATOR = "\n";
@@ -46,22 +54,26 @@ public class CSVUtils {
     //上传文件的存储位置(Linux服务器)
 //    private final static String PATHSTR = "/root/payne/";
 
+    private static Boolean flag = false;
 
     /**
      * @return File
      * @Description 创建CSV文件
      * @Param fileName 文件名，head 表头，values 表体
      **/
-    public File makeTempCSV(String fileName, String[] head, List<OrderInfo> orderlist) throws IOException {
+    public File makeTempCSV(String fileName, List<OrderInfo> orderlist) throws IOException {
 //        创建文件
-        File file = File.createTempFile(fileName, ".csv", new File(PATHSTR));
-//        File file = new File("/Users/payne/Downloads/" + fileName + ".csv");
+//        File file = File.createTempFile(fileName, ".csv", new File(PATHSTR));
+        File file = new File("/Users/payne/Downloads/" + fileName);
+        if (file.exists()) {
+            file.delete();
+        }
         CSVFormat formator = CSVFormat.DEFAULT.withRecordSeparator(NEW_LINE_SEPARATOR);
-
         BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
         CSVPrinter printer = new CSVPrinter(bufferedWriter, formator);
 
-//      写入表头String[] head = {"订单日期", "订单号", "sku", "数量", "发货日期", "OCS", "黑猫", "邮编", "收件人地址", "收件人", "电话号码"};
+//      写入表头
+        String[] head = {"订单日期", "订单号", "sku", "数量", "发货日期", "OCS", "黑猫", "邮编", "收件人地址", "收件人", "电话号码"};
         printer.printRecord(head);
         List<String[]> values = new ArrayList<>();
         String orderId = "";
@@ -162,13 +174,15 @@ public class CSVUtils {
      * @Param multipartFile
      **/
     public List<OrderInfo> uploadFile(MultipartFile multipartFile1, MultipartFile multipartFile2) {
+        File file1 = null;
+        File file2 = null;
         try {
             // 文件1
             String fileName1 = multipartFile1.getOriginalFilename();
 //            String path1 = PATH.getPath() + fileName1;
             String path1 = PATHSTR + fileName1;
             logger.info(path1);
-            File file1 = new File(path1);
+            file1 = new File(path1);
             if (!file1.getParentFile().exists()) {
                 file1.getParentFile().mkdirs();
             }
@@ -178,7 +192,7 @@ public class CSVUtils {
             String fileName2 = multipartFile2.getOriginalFilename();
 //            String path2 = PATH.getPath() + fileName2;
             String path2 = PATHSTR + fileName2;
-            File file2 = new File(path2);
+            file2 = new File(path2);
             if (!file2.getParentFile().exists()) {
                 file2.getParentFile().mkdirs();
             }
@@ -192,40 +206,63 @@ public class CSVUtils {
                 mjxxList = readCSV(file1.getPath());
                 spxxList = readCSV(file2.getPath());
             }
-            for (OrderInfo spxx : spxxList) {
+            // 根据收货人或者电话号码判断是否能一起发货 || 是否是新进来订单
+            List<String> oldOrderIds = new ArrayList<>();
+            Set<String> shipNameSet = new HashSet<>();
+            Set<String> iphoneSet = new HashSet<>();
+            for (int i = 0; i < mjxxList.size(); i++) {
+                String orderId = mjxxList.get(i).getOrderId();
+                ShopOrder orderModel = shopOrderMapper.load(orderId);
+                if (orderModel != null) {
+                    oldOrderIds.add(orderId);
+                    mjxxList.remove(i);
+                    i--;
+                } else {
+                    iphoneSet.add(mjxxList.get(i).getShipName());
+                    shipNameSet.add(mjxxList.get(i).getPhone());
+                    ShopOrder shopOrder = new ShopOrder();
+                    shopOrder.setOrderId(orderId);
+                    shopOrder.setOrderTime(mjxxList.get(i).getOrderTime());
+                    shopOrder.setPostCode(mjxxList.get(i).getZipCode());
+                    shopOrder.setAddress(mjxxList.get(i).getAddress());
+                    shopOrder.setConsignee(mjxxList.get(i).getShipName());
+                    shopOrder.setIphone(mjxxList.get(i).getPhone());
+                    shopOrderMapper.insert(shopOrder);
+                }
+            }
+            for (int i = 0; i < spxxList.size(); i++) {
+                if (oldOrderIds.contains(spxxList.get(i).getOrderId())) {
+                    spxxList.remove(i);
+                    i--;
+                    continue;
+                }
                 for (OrderInfo mjxx : mjxxList) {
-                    if (spxx.getOrderId().equals(mjxx.getOrderId())) {
-                        spxx.setZipCode(mjxx.getZipCode());
-                        spxx.setAddress(mjxx.getAddress());
-                        spxx.setShipName(mjxx.getShipName());
-                        spxx.setPhone(mjxx.getPhone());
-                        spxx.setOrderTime(mjxx.getOrderTime());
+                    if (spxxList.get(i).getOrderId().equals(mjxx.getOrderId())) {
+                        spxxList.get(i).setZipCode(mjxx.getZipCode());
+                        spxxList.get(i).setAddress(mjxx.getAddress());
+                        spxxList.get(i).setShipName(mjxx.getShipName());
+                        spxxList.get(i).setPhone(mjxx.getPhone());
+                        spxxList.get(i).setOrderTime(mjxx.getOrderTime());
                     }
                 }
             }
             spxxList.sort(Comparator.comparing(OrderInfo::getOrderId));
-            // 根据收货人或者电话号码判断是否能一起发货
-            Set<String> shipNameSet = new HashSet<>();
-            Set<String> iphoneSet = new HashSet<>();
-            for (OrderInfo mjxx : mjxxList) {
-                iphoneSet.add(mjxx.getShipName());
-                shipNameSet.add(mjxx.getPhone());
-            }
             if (shipNameSet.size() < mjxxList.size() || iphoneSet.size() < mjxxList.size()) {
                 spxxList.get(0).setRepeatFlag(true);
             }
-            file1.delete();
-            file2.delete();
             return spxxList;
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("上传文件失败" + e.getMessage(), e);
             return null;
+        } finally {
+            file1.delete();
+            file2.delete();
         }
     }
 
     /**
      * @return List<List < String>>
-     * @Description 读取CSV文件的内容（不含表头）
+     * @Description 读取spxx和mjxx文件的内容（不含表头）
      * @Param filePath 文件存储路径，colNum 列数
      **/
     public static List<OrderInfo> readCSV(String filePath) {
@@ -405,20 +442,22 @@ public class CSVUtils {
      * @Param multipartFile
      **/
     public List<LogisticsInfo> synchroExpress(MultipartFile multipartFile) {
+        File file = null;
         try {
             String fileName = multipartFile.getOriginalFilename();
             String path = PATHSTR + fileName;
             logger.info(path);
-            File file = new File(path);
+            file = new File(path);
             if (!file.getParentFile().exists()) {
                 file.getParentFile().mkdirs();
             }
             multipartFile.transferTo(file);
-            List<LogisticsInfo> list = readCSVExpress(file.getPath());
-//            file.delete();
+            List<LogisticsInfo> list = readExcelExpress(file.getPath());
             return list;
         } catch (IOException e) {
             logger.error("上传文件失败" + e.getMessage(), e);
+        } finally {
+            file.delete();
         }
         return null;
     }
@@ -428,7 +467,7 @@ public class CSVUtils {
      * @Description 读取CSV文件的内容（不含表头）
      * @Param filePath 文件存储路径，colNum 列数
      **/
-    public List<LogisticsInfo> readCSVExpress(String filePath) {
+    public List<LogisticsInfo> readExcelExpress(String filePath) {
         List<LogisticsInfo> list = new ArrayList<>();
         try {
             FileInputStream fileInputStream = new FileInputStream(filePath);
@@ -440,29 +479,36 @@ public class CSVUtils {
                     continue;
                 }
                 LogisticsInfo logisticsInfo = new LogisticsInfo();
-                if (row.getCell(4) != null) {
-                    row.getCell(4).setCellType(CellType.STRING);
-                    logisticsInfo.setInTranCode(String.valueOf(row.getCell(4)));// OCS运单号
+                if (row.getCell(5) != null) {
+                    row.getCell(5).setCellType(CellType.STRING);
+                    logisticsInfo.setInTranCode(String.valueOf(row.getCell(5)));// OCS运单号
                 }
                 if (row.getCell(0) != null) {
                     row.getCell(0).setCellType(CellType.STRING);
-                    logisticsInfo.setOrderCode(String.valueOf(row.getCell(0)));// 订单号
+                    logisticsInfo.setOrderTime(String.valueOf(row.getCell(0)));// 订单时间
                 }
                 if (row.getCell(1) != null) {
                     row.getCell(1).setCellType(CellType.STRING);
-                    logisticsInfo.setSkuId(String.valueOf(row.getCell(1)));// sku_id
+                    logisticsInfo.setOrderCode(String.valueOf(row.getCell(1)));// 订单号
                 }
                 if (row.getCell(2) != null) {
                     row.getCell(2).setCellType(CellType.STRING);
-                    logisticsInfo.setQuantity(String.valueOf(row.getCell(2)));// 数量
+                    logisticsInfo.setSkuId(String.valueOf(row.getCell(2)));// sku_id
                 }
-                if (StringUtils.isNotBlank(String.valueOf(row.getCell(4)))) {
+                if (row.getCell(3) != null) {
+                    row.getCell(3).setCellType(CellType.STRING);
+                    logisticsInfo.setQuantity(String.valueOf(row.getCell(3)));// 数量
+                }
+                if (StringUtils.isNotBlank(String.valueOf(row.getCell(5)))) {
                     LogisticsInfo model = logisticsInfoMapper.load(logisticsInfo.getInTranCode());
                     if (null != model) {
                         logisticsInfo.setId(model.getId());
                         logisticsInfoMapper.update(logisticsInfo);
                         if (StringUtils.isNotBlank(model.getObtainTime())) {
                             logisticsInfo.setObtainTime(model.getObtainTime().substring(0, model.getObtainTime().indexOf(" ")));
+                        }
+                        if (StringUtils.isNotBlank(model.getOutTranCode())) {
+                            flag = true;
                         }
                         logisticsInfo.setOutTranCode(model.getOutTranCode());
                         logisticsInfo.setTranDetail(model.getTranDetail());
@@ -481,32 +527,158 @@ public class CSVUtils {
         return null;
     }
 
+    public File makeTempExcelExpress(String fileName, String[] head, List<LogisticsInfo> expressList) throws IOException {
+        try {
+            //创建工作簿
+            XSSFWorkbook wb = new XSSFWorkbook();
+            //创建 Sheet页
+            Sheet sheetA = wb.createSheet("A");
+            for (int i = 0; i < expressList.size(); i++) {
+                //创建单元行
+                Row row = sheetA.createRow(i);
+                LogisticsInfo logisticsInfo = expressList.get(i);
 
-    public File makeTempCSVExpress(String fileName, String[] head, List<LogisticsInfo> expressList) throws IOException {
+                Cell cell0 = row.createCell(0);
+                cell0.setCellValue(logisticsInfo.getOrderTime());
+
+                Cell cell1 = row.createCell(1);
+                cell1.setCellValue(logisticsInfo.getOrderCode());
+
+                Cell cell2 = row.createCell(2);
+                cell2.setCellValue(logisticsInfo.getSkuId());
+
+                Cell cell3 = row.createCell(3);
+                cell3.setCellValue(logisticsInfo.getQuantity());
+
+                Cell cell4 = row.createCell(4);
+                cell4.setCellValue(logisticsInfo.getObtainTime());
+
+                Cell cell5 = row.createCell(5);
+                cell5.setCellValue(logisticsInfo.getInTranCode());
+
+                Cell cell6 = row.createCell(6);
+                if (StringUtils.isNotBlank(logisticsInfo.getOutTranCode())) {
+                    cell6.setCellValue(logisticsInfo.getOutTranCode() + "\t");
+                } else {
+                    cell6.setCellValue(logisticsInfo.getOutTranCode());
+                }
+                Cell cell7 = row.createCell(7);
+                cell7.setCellValue(logisticsInfo.getTranDetail());
+                /*String[] orderArr = {logisticsInfo.getOrderCode(), logisticsInfo.getSkuId(), logisticsInfo.getQuantity(),
+                        logisticsInfo.getObtainTime(), logisticsInfo.getInTranCode(),
+                        StringUtils.isNotBlank(logisticsInfo.getOutTranCode()) ? logisticsInfo.getOutTranCode() + "\t" : logisticsInfo.getOutTranCode(),
+                        logisticsInfo.getTranDetail()};*/
+            }
+            //路径需要存在
+            FileOutputStream fos = new FileOutputStream(PATHSTR + fileName + ".xls");
+            wb.write(fos);
+            fos.close();
+            wb.close();
+            System.out.println("写数据结束！");
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public void makeTempCSVExpress(String fileName, List<LogisticsInfo> expressList) throws IOException {
+        if (flag) {
 //        创建文件
-        File file = File.createTempFile(fileName, ".csv", new File(PATHSTR));
-//        File file = new File("/Users/payne/Downloads/" + fileName + ".csv");
-        CSVFormat formator = CSVFormat.DEFAULT.withRecordSeparator(NEW_LINE_SEPARATOR);
+//        File file = File.createTempFile(fileName, ".csv", new File(PATHSTR));
+            File file = new File("/Users/payne/Downloads/" + fileName);
+            if (file.exists()) {
+                file.delete();
+            }
+            CSVFormat formator = CSVFormat.DEFAULT.withRecordSeparator(NEW_LINE_SEPARATOR);
 
-        BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
-        CSVPrinter printer = new CSVPrinter(bufferedWriter, formator);
+            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
+            CSVPrinter printer = new CSVPrinter(bufferedWriter, formator);
 
-//      写入表头String[] head = {"订单号", "sku", "数量", "发货日期", "OCS", "黑猫", "运单详情"};
-//        printer.printRecord(head);
-        List<String[]> values = new ArrayList<>();
-        for (LogisticsInfo logisticsInfo : expressList) {
-            String[] orderArr = {logisticsInfo.getOrderCode(), logisticsInfo.getSkuId(), logisticsInfo.getQuantity(),
-                    logisticsInfo.getObtainTime(), logisticsInfo.getInTranCode(),
-                    StringUtils.isNotBlank(logisticsInfo.getOutTranCode()) ? logisticsInfo.getOutTranCode() + "\t" : logisticsInfo.getOutTranCode(),
-                    logisticsInfo.getTranDetail()};
-            values.add(orderArr);
-        }
+            String[] head = {"订单日期", "订单号", "sku", "数量", "发货日期", "OCS", "运单号", "运单详情"};
+            printer.printRecord(head);
+            List<String[]> values = new ArrayList<>();
+            for (LogisticsInfo logisticsInfo : expressList) {
+                if (isChinese(logisticsInfo.getOrderTime())) {
+                    continue;
+                }
+                String[] orderArr = {logisticsInfo.getOrderTime(), logisticsInfo.getOrderCode(), logisticsInfo.getSkuId(),
+                        logisticsInfo.getQuantity(), logisticsInfo.getObtainTime(), logisticsInfo.getInTranCode(),
+                        StringUtils.isNotBlank(logisticsInfo.getOutTranCode()) ? logisticsInfo.getOutTranCode() + "\t" : logisticsInfo.getOutTranCode(),
+                        logisticsInfo.getTranDetail()};
+                values.add(orderArr);
+            }
 //      写入内容
-        for (String[] value : values) {
-            printer.printRecord(value);
+            for (String[] value : values) {
+                printer.printRecord(value);
+            }
+            printer.close();
+            bufferedWriter.close();
         }
-        printer.close();
-        bufferedWriter.close();
-        return file;
+
+    }
+
+    public void makeYahooExpress(String fileName, List<LogisticsInfo> expressList) throws IOException {
+        if (flag) {
+            //        创建文件
+//        File file = File.createTempFile(fileName, ".csv", new File(PATHSTR));
+            File file = new File("/Users/payne/Downloads/" + fileName);
+            if (file.exists()) {
+                file.delete();
+            }
+            CSVFormat formator = CSVFormat.DEFAULT.withRecordSeparator(NEW_LINE_SEPARATOR);
+
+            BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "UTF-8"));
+            CSVPrinter printer = new CSVPrinter(bufferedWriter, formator);
+
+            String[] headYahoo = {"OrderId", "ShipMethod", "ShipCompanyCode", "ShipInvoiceNumber1", "ShipDate", "ShipStatus"};
+            printer.printRecord(headYahoo);
+            List<String[]> values = new ArrayList<>();
+            for (LogisticsInfo logisticsInfo : expressList) {
+                if (isChinese(logisticsInfo.getOrderTime()) || StringUtils.isBlank(logisticsInfo.getOutTranCode())) {
+                    continue;
+                }
+                String ShipCompanyCode = "";
+                if (logisticsInfo.getOutTranCode().length() == 12 && "299".equals(logisticsInfo.getOutTranCode().substring(0, 3))) {
+                    ShipCompanyCode = "1001";
+                } else {
+                    ShipCompanyCode = "1002";
+                }
+                String[] orderArr = {
+                        logisticsInfo.getOrderCode(),
+                        "postage1",
+                        ShipCompanyCode,
+                        logisticsInfo.getOutTranCode() + "\t",
+                        logisticsInfo.getObtainTime(),
+                        "3"
+                };
+                values.add(orderArr);
+            }
+            //      写入内容
+            for (String[] value : values) {
+                printer.printRecord(value);
+            }
+            printer.close();
+            bufferedWriter.close();
+        }
+    }
+
+
+    // 判断一个字符串是否含有中文
+    public boolean isChinese(String str) {
+        if (str == null) {
+            return false;
+        }
+        for (char c : str.toCharArray()) {
+            if (isChinese(c)) {
+                return true;// 有一个中文字符就返回
+            }
+        }
+        return false;
+    }
+
+    // 判断一个字符是否是中文
+    public boolean isChinese(char c) {
+        return c >= 0x4E00 && c <= 0x9FA5;// 根据字节码判断
     }
 }

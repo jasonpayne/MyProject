@@ -1,6 +1,6 @@
 package com.payne.shop.mapper;
 
-import com.payne.shop.entity.LogisticsInfo;
+import com.payne.shop.entity.ShopOrder;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
@@ -14,7 +14,7 @@ import java.util.List;
  */
 @Mapper
 @Repository
-public interface LogisticsInfoMapper {
+public interface ShopOrderMapper {
 
     /**
      * [新增]
@@ -22,7 +22,7 @@ public interface LogisticsInfoMapper {
      * @author panxinchao
      * @date 2020/11/13
      **/
-    int insert(LogisticsInfo logisticsInfo);
+    int insert(ShopOrder shopOrder);
 
     /**
      * [新增(批量)]
@@ -30,7 +30,7 @@ public interface LogisticsInfoMapper {
      * @author panxinchao
      * @date 2020/10/13
      **/
-    int insertBatch(List<LogisticsInfo> logisticsInfoList);
+    int insertBatch(List<ShopOrder> shopOrderList);
 
     /**
      * [刪除]
@@ -46,7 +46,7 @@ public interface LogisticsInfoMapper {
      * @author panxinchao
      * @date 2020/11/13
      **/
-    int update(LogisticsInfo logisticsInfo);
+    int update(ShopOrder shopOrder);
 
     /**
      * [查询] 根据 inTranCode 查询
@@ -54,7 +54,7 @@ public interface LogisticsInfoMapper {
      * @author panxinchao
      * @date 2020/11/13
      **/
-    LogisticsInfo load(String inTranCode);
+    ShopOrder load(String orderId);
 
     /**
      * [查询] 分页查询
@@ -62,7 +62,7 @@ public interface LogisticsInfoMapper {
      * @author panxinchao
      * @date 2020/11/13
      **/
-    List<LogisticsInfo> pageList(int offset, int pagesize);
+    List<ShopOrder> pageList(int offset, int pagesize);
 
     /**
      * [查询] 分页查询 count

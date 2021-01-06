@@ -3,7 +3,10 @@ package com.payne.school.config;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.Contact;
 import springfox.documentation.service.Parameter;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
@@ -16,22 +19,45 @@ import java.util.List;
 @EnableSwagger2
 public class Swagger2Config {
 
+    /**
+     * swagger2的配置文件，这里可以配置swagger2的一些基本的内容，比如扫描的包等等
+     */
     @Bean
-    public Docket swaggerSpringMvcPlugin() {
-
+    public Docket createRestApi() {
+//        List<Parameter> pars = new ArrayList<>();
+//        ParameterBuilder tokenPar = new ParameterBuilder();
+//        tokenPar.name("token").description("令牌").modelRef(new ModelRef("string")).parameterType("header").required(false).build();
+//        pars.add(tokenPar.build());
+//        return new Docket(DocumentationType.SWAGGER_2)
+//                .apiInfo(apiInfo())
+//                .select()
+//                //为当前包路径
+//                .apis(RequestHandlerSelectors.basePackage("com.tigerobo.csp"))
+//                .paths(PathSelectors.any())
+//                .build().globalOperationParameters(pars);
         List<Parameter> pars = new ArrayList<Parameter>();
 
-        /*User userEntity = userService.getUserByName("bitmain");
-        if(userEntity!=null){
-            ParameterBuilder tokenPar = new ParameterBuilder();
-            long _100yearSec = 100L * 365 * 24 * 60 * 60;
-            String token = authService.getToken(userEntity,_100yearSec);
-            tokenPar.name(Constants.JWT_HEADER_NAME).description("令牌").modelRef(new ModelRef("string")).
-                    parameterType("header").defaultValue(Constants.JWT_TOKEN_PREFIX + token).required(false).build();
-            pars.add(tokenPar.build());
-        }*/
+        return new Docket(DocumentationType.SWAGGER_2)
+                .globalOperationParameters(pars)
+                .select()
+                .apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.class)).build();
+    }
 
-        return new Docket(DocumentationType.SWAGGER_2).globalOperationParameters(pars).select().
-                apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.class)).build();
+    /**
+     * 构建 api文档的详细信息函数,注意这里的注解引用的是哪个
+     *
+     * @return
+     */
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                //页面标题
+                .title("我的管理平台 - 系统接口")
+                //创建人
+                .contact(new Contact("tigerobo", "https://www.tigerobo.com/#/", "contact@tigerobo.com"))
+                //版本号
+                .version("1.0.0")
+                //描述
+                .description("")
+                .build();
     }
 }

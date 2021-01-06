@@ -12,6 +12,12 @@ swagger:
 spring:
   application:
     name: payne-baby
+  servlet:
+    multipart:
+      max-request-size: 100MB
+      max-file-size: 100MB
+      enabled: true
+      resolve-lazily: false
 
 db:
   school:

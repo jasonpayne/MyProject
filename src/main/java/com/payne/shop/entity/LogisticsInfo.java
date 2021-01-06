@@ -1,4 +1,4 @@
-package com.payne.shop.model;
+package com.payne.shop.entity;
 
 import lombok.Data;
 
@@ -65,5 +65,10 @@ public class LogisticsInfo implements Serializable {
      * 数量
      */
     private String quantity;
+    
+    /**
+     * 订单时间
+     */
+    private String orderTime;
 
 }

@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.payne.shop.mapper.ShopOrderMapper">
+
+    <resultMap id="BaseResultMap" type="com.payne.shop.entity.ShopOrder">
+        <result column="id" property="id"/>
+        <result column="orderId" property="orderId"/>
+        <result column="orderTime" property="orderTime"/>
+        <result column="payTime" property="payTime"/>
+        <result column="status" property="status"/>
+        <result column="postcode" property="postCode"/>
+        <result column="address" property="address"/>
+        <result column="consignee" property="consignee"/>
+        <result column="deliveTime" property="deliveTime"/>
+        <result column="iphone" property="iphone"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+                id,
+                orderId,
+                orderTime,
+                payTime,
+                status,
+                postcode,
+                address,
+                consignee,
+                deliveTime,
+                iphone
+    </sql>
+
+    <insert id="insert" parameterType="com.payne.shop.entity.ShopOrder">
+        INSERT INTO shop_order
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test='null != orderId and "" != orderId'>
+                orderId,
+            </if>
+            <if test='null != orderTime and "" != orderTime'>
+                orderTime,
+            </if>
+            <if test='null != payTime and "" != payTime'>
+                payTime,
+            </if>
+            <if test='null != status'>
+                status,
+            </if>
+            <if test='null != postCode and "" != postCode'>
+                postcode,
+            </if>
+            <if test='null != address and "" != address'>
+                address,
+            </if>
+            <if test='null != consignee and "" != consignee'>
+                consignee,
+            </if>
+            <if test='null != deliveTime and "" != deliveTime'>
+                deliveTime,
+            </if>
+            <if test='null != iphone and "" != orderId'>
+                iphone
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test='null != orderId and "" != orderId'>
+                #{orderId},
+            </if>
+            <if test='null != orderTime and "" != orderTime'>
+                #{orderTime},
+            </if>
+            <if test='null != payTime and "" != payTime'>
+                #{payTime},
+            </if>
+            <if test='null != status'>
+                #{status},
+            </if>
+            <if test='null != postCode and "" != postCode'>
+                #{postCode},
+            </if>
+            <if test='null != address and "" != address'>
+                #{address},
+            </if>
+            <if test='null != consignee and "" != consignee'>
+                #{consignee},
+            </if>
+            <if test='null != deliveTime and "" != deliveTime'>
+                #{deliveTime},
+            </if>
+            <if test='null != iphone and "" != orderId'>
+                #{iphone}
+            </if>
+        </trim>
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM shop_order
+        WHERE id = #{id}
+    </delete>
+
+    <update id="update" parameterType="com.payne.shop.entity.ShopOrder">
+        UPDATE shop_order
+        <set>
+            <if test='null != orderCode'>orderCode = #{orderCode},</if>
+            <if test='null != inTranCode'>inTranCode = #{inTranCode},</if>
+            <if test='null != outTranCode'>outTranCode = #{outTranCode},</if>
+            <if test='null != obtainTime'>obtainTime = #{obtainTime},</if>
+            <if test='null != tranDetail'>tranDetail = #{tranDetail},</if>
+            <if test='null != signTime'>signTime = #{signTime},</if>
+            <if test='null != status'>status = #{status}</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+
+    <select id="load" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM shop_order
+        WHERE orderId = #{orderId}
+    </select>
+
+    <select id="pageList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM shop_order
+        LIMIT #{offset}, #{pageSize}
+    </select>
+
+    <select id="pageListCount" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM shop_order
+    </select>
+
+</mapper>

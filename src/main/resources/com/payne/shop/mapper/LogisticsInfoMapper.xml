@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.payne.shop.mapper.LogisticsInfoMapper">
 
-    <resultMap id="BaseResultMap" type="com.payne.shop.model.LogisticsInfo">
+    <resultMap id="BaseResultMap" type="com.payne.shop.entity.LogisticsInfo">
         <result column="id" property="id"/>
         <result column="orderCode" property="orderCode"/>
         <result column="inTranCode" property="inTranCode"/>
@@ -26,7 +26,7 @@
     </sql>
 
     <insert id="insert" useGeneratedKeys="true" keyColumn="id" keyProperty="id"
-            parameterType="com.payne.shop.model.LogisticsInfo">
+            parameterType="com.payne.shop.entity.LogisticsInfo">
         INSERT INTO logistics_info
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test='null != orderCode'>
@@ -76,7 +76,7 @@
         </trim>
     </insert>
 
-    <insert id="insertBatch" parameterType="com.payne.shop.model.LogisticsInfo">
+    <insert id="insertBatch" parameterType="com.payne.shop.entity.LogisticsInfo">
         replace into logistics_info (orderCode, inTranCode, outTranCode, obtainTime, tranDetail, signTime) values
         <foreach collection="list" item="item" separator=",">
             (#{item.orderCode},#{item.inTranCode},#{item.outTranCode},#{item.obtainTime},#{item.tranDetail},#{item.signTime})
@@ -88,7 +88,7 @@
         WHERE id = #{id}
     </delete>
 
-    <update id="update" parameterType="com.payne.shop.model.LogisticsInfo">
+    <update id="update" parameterType="com.payne.shop.entity.LogisticsInfo">
         UPDATE logistics_info
         <set>
             <if test='null != orderCode'>orderCode = #{orderCode},</if>
