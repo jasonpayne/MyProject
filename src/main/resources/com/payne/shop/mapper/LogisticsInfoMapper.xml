@@ -91,13 +91,13 @@
     <update id="update" parameterType="com.payne.shop.entity.LogisticsInfo">
         UPDATE logistics_info
         <set>
-            <if test='null != orderCode'>orderCode = #{orderCode},</if>
-            <if test='null != inTranCode'>inTranCode = #{inTranCode},</if>
-            <if test='null != outTranCode'>outTranCode = #{outTranCode},</if>
-            <if test='null != obtainTime'>obtainTime = #{obtainTime},</if>
-            <if test='null != tranDetail'>tranDetail = #{tranDetail},</if>
-            <if test='null != signTime'>signTime = #{signTime},</if>
-            <if test='null != status'>status = #{status}</if>
+            <if test='null != orderCode and "" != orderCode'>orderCode = #{orderCode},</if>
+            <if test='null != inTranCode and "" != inTranCode'>inTranCode = #{inTranCode},</if>
+            <if test='null != outTranCode and "" != outTranCode'>outTranCode = #{outTranCode},</if>
+            <if test='null != obtainTime and "" != obtainTime'>obtainTime = #{obtainTime},</if>
+            <if test='null != tranDetail and "" != tranDetail'>tranDetail = #{tranDetail},</if>
+            <if test='null != signTime and "" != signTime'>signTime = #{signTime},</if>
+            <if test='null != status and "" != status'>status = #{status}</if>
         </set>
         WHERE id = #{id}
     </update>
