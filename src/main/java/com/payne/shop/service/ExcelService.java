@@ -284,10 +284,9 @@ public class ExcelService {
             rowReader.createCell(5).setCellValue("OCS");
             rowReader.createCell(6).setCellValue("转运单号");
             rowReader.createCell(7).setCellValue("邮编");
-            rowReader.createCell(8).setCellValue("转运单号");
-            rowReader.createCell(9).setCellValue("收件人地址");
-            rowReader.createCell(10).setCellValue("收件人");
-            rowReader.createCell(11).setCellValue("电话号码");
+            rowReader.createCell(8).setCellValue("收件人地址");
+            rowReader.createCell(9).setCellValue("收件人");
+            rowReader.createCell(10).setCellValue("电话号码");
             String orderId = "";
             Boolean repeatOrderFlag = true;
             Map<String, List<Integer>> map = new HashMap<>();
