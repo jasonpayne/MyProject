@@ -348,7 +348,7 @@ public class ExcelService {
                 List<Integer> list = m.getValue();
                 if (list.size() > 1) {
                     for (int i = 0; i < 11; i++) {
-                        if (i != 2) {
+                        if (i != 2 && i != 3) {
                             CellRangeAddress region = new CellRangeAddress(list.get(0), list.get(list.size() - 1), i, i);
                             sheet.addMergedRegion(region);
                         }
