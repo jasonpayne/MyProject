@@ -30,3 +30,6 @@ db:
     driver-class-name: com.mysql.jdbc.Driver
     username: root
     password: 123456
+
+document:
+  path: /Users/payne/Downloads/
