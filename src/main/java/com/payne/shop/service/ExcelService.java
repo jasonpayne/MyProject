@@ -792,7 +792,7 @@ public class ExcelService {
             int j = 0;
             for (int i = 0; i < expressList.size(); i++) {
                 LogisticsInfo logisticsInfo = expressList.get(i);
-                if (StringUtils.isBlank(logisticsInfo.getOutTranCode()) || i == 0) {
+                if ((StringUtils.isNotBlank(logisticsInfo.getInTranCode()) && StringUtils.isBlank(logisticsInfo.getOutTranCode())) || i == 0) {
                     //创建新的单元行
                     Row rowNew = sheetNew.createRow(j);
                     rowNew.createCell(0).setCellValue(logisticsInfo.getOrderTime());
